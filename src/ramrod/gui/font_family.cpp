@@ -1,4 +1,4 @@
-#include "ramrod/gui/font_loader.h"
+#include "ramrod/gui/font_family.h"
 
 #include <fstream>
 #include <vector>
@@ -10,7 +10,7 @@
 
 namespace ramrod {
   namespace gui {
-    font_loader::font_loader(const std::string &font_distance_path,
+    font_family::font_family(const std::string &font_distance_path,
                              const std::string &font_info_path) :
       font_name_("untitled"),
       distance_path_(font_distance_path),
@@ -31,14 +31,14 @@ namespace ramrod {
         rr::error("Folder path does not exist");
     }
 
-    bool font_loader::use(){
+    bool font_family::use(){
       if(!is_loaded_ || error_) return false;
       texture_.activate();
       texture_.bind();
       return true;
     }
 
-    std::string font_loader::decimal_to_unicode(std::uint32_t number){
+    std::string font_family::decimal_to_unicode(std::uint32_t number){
       // Supports 32 bit number
       char hexadecimal[5] = "000\0";
       std::uint32_t temporal;
@@ -59,7 +59,7 @@ namespace ramrod {
       return std::string(hexadecimal);
     }
 
-    std::string font_loader::unicode_to_utf8(std::uint32_t code){
+    std::string font_family::unicode_to_utf8(std::uint32_t code){
       char chars[5];
       if(code <= 0x7F){
         chars[0] = (code & 0x7F); chars[1] = '\0';
@@ -86,17 +86,21 @@ namespace ramrod {
       return std::string(chars);
     }
 
-    const std::map<const std::string, text::character> &font_loader::characters(){
+    const std::map<const std::string, text::character> &font_family::characters(){
       return characters_;
     }
 
-    const std::string &font_loader::font_name(){
+    bool font_family::error(){
+      return error_;
+    }
+
+    const std::string &font_family::font_name(){
       return font_name_;
     }
 
     // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
-    void font_loader::load_distance(){
+    void font_family::load_distance(){
       gui::image_loader image(distance_path_, false);
 
       if(!image.data()){
@@ -117,7 +121,7 @@ namespace ramrod {
       error_ = false;
     }
 
-    void font_loader::load_info(){
+    void font_family::load_info(){
       std::ifstream file;
       std::string line;
       std::size_t position(0u);

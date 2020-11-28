@@ -9,8 +9,9 @@
 #include "SDL_stdinc.h"                            // for SDL_free
 #include "ramrod/console.h"                        // for formatted
 #include "ramrod/console/attention.h"              // for attention, attenti...
-#include "ramrod/console/types.h"                  // for attention
+#include "ramrod/console/types.h"
 #include "ramrod/gui/enumerators.h"                // for ctrl, not_none
+#include "ramrod/gui/input.h"
 #include "ramrod/gui/window.h"                     // for window
 
 namespace ramrod {
@@ -23,7 +24,6 @@ namespace ramrod {
       closing_{false},
       hidden_{true},
       keyboard_active_{false},
-      mouse_active_{false},
       mouse_blocked_{false},
       mouse_left_active_{false},
       mouse_middle_active_{false},
@@ -32,7 +32,10 @@ namespace ramrod {
       window_{parent},
       key_modifier_{-1},
       previous_x_{-1},
-      previous_y_{-1}
+      previous_y_{-1},
+      current_element_{0},
+      current_children_{0},
+      current_identifier_{nullptr}
     {
     }
 
@@ -75,26 +78,100 @@ namespace ramrod {
       key_modifier_ = event.keysym.mod & ramrod::gui::keyboard::not_none;
 
       switch(event.keysym.sym){
+        case SDLK_TAB:
+          if(key_modifier_ & ramrod::gui::keyboard::shift && !key_up){
+            rr::attention("tab previous");
+            if(current_input_) current_input_->blur();
+            current_input_ = window_->tab_previous();
+            if(current_input_) current_input_->focus();
+          }else if(!key_up){
+            rr::attention("tab next");
+            if(current_input_) current_input_->blur();
+            current_input_ = window_->tab_next();
+            if(current_input_) current_input_->focus();
+          }
+        break;
+        case SDLK_BACKSPACE:
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("backspace word");
+            if(current_input_) current_input_->backspace_word();
+          }else if(!key_up){
+            rr::attention("backspace");
+            if(current_input_) current_input_->backspace();
+          }
+        break;
+        case SDLK_DELETE:
+          if(key_modifier_ & ramrod::gui::keyboard::shift && !key_up){
+            rr::attention("delete line");
+            if(current_input_) current_input_->delete_line();
+          }else if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("delete word");
+            if(current_input_) current_input_->delete_word();
+          }else if(!key_up){
+            rr::attention("delete");
+            if(current_input_) current_input_->delete_character();
+          }
+        break;
+        case SDLK_PAGEDOWN:
+          if(!key_up){
+            rr::attention("page down");
+          }
+        break;
+        case SDLK_PAGEUP:
+          if(!key_up){
+            rr::attention("page up");
+          }
+        break;
+        case SDLK_HOME:
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("goto beginning");
+            if(current_input_) current_input_->goto_position(0);
+          }else if(!key_up){
+            rr::attention("home");
+          }
+        break;
+        case SDLK_END:
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("goto end");
+            if(current_input_) current_input_->goto_position(-1);
+          }else if(!key_up){
+            rr::attention("end");
+          }
+        break;
         case SDLK_DOWN:
         break;
         case SDLK_UP:
         break;
         case SDLK_LEFT:
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("word left");
+            if(current_input_) current_input_->previous_word();
+          }else if(!key_up){
+            rr::attention("left");
+            if(current_input_) current_input_->previous_character();
+          }
         break;
         case SDLK_RIGHT:
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
+            rr::attention("word right");
+            if(current_input_) current_input_->next_word();
+          }else if(!key_up){
+            rr::attention("right");
+            if(current_input_) current_input_->next_character();
+          }
         break;
         case SDLK_c:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
             rr::attention("coping");
           }
         break;
         case SDLK_v:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
             rr::attention("pasting");
           }
         break;
         case SDLK_x:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
+          if(key_modifier_ & ramrod::gui::keyboard::ctrl && !key_up){
             rr::attention("cuting");
           }
         break;
@@ -103,51 +180,38 @@ namespace ramrod {
     }
 
     void event_handler::mouse_button_event(const SDL_MouseButtonEvent &event){
-      mouse_left_active_ = mouse_middle_active_ = mouse_right_active_ = false;
-
-      if(!(mouse_active_ = (event.state == SDL_PRESSED)))
-        //      core_->change_cursor(torero::gui::Cursor::Normal);
-
-        switch(event.button){
-          case SDL_BUTTON_LEFT:
-            mouse_left_active_ = true;
-
-            if(!mouse_blocked_ && mouse_active_){
-              //          core_->change_cursor(torero::gui::Cursor::ArrowALL);
-            }
-          break;
-          case SDL_BUTTON_MIDDLE:
-            mouse_middle_active_ = true;
-          break;
-          case SDL_BUTTON_RIGHT:
-            mouse_right_active_ = true;
-
-            if(!mouse_blocked_ && mouse_active_){
-              //          core_->change_cursor(torero::gui::Cursor::ArrowALL);
-            }
-          break;
-          default: break;
-        }
+      switch(event.button){
+        case SDL_BUTTON_LEFT:
+          mouse_left_active_ = event.state == SDL_PRESSED;
+        break;
+        case SDL_BUTTON_MIDDLE:
+          mouse_middle_active_ = event.state == SDL_PRESSED;
+        break;
+        case SDL_BUTTON_RIGHT:
+          mouse_right_active_ = event.state == SDL_PRESSED;
+        break;
+        default: break;
+      }
     }
 
     void event_handler::mouse_motion_event(const SDL_MouseMotionEvent &event){
-      if(mouse_active_ && !mouse_blocked_){
-        if(mouse_left_active_ || mouse_right_active_){
-          //        core_->camera().mouse_to_camera(event.xrel, event.yrel, mouse_left_active_);
-          has_changed_ = true;
+      if(!mouse_blocked_){
+        current_identifier_ = window_->read_pixel(event.x, event.y);
+        if(current_identifier_->element != current_element_){
+          // Changed element
         }
       }
     }
 
     void event_handler::mouse_wheel_event(const SDL_MouseWheelEvent &event){
       if(!mouse_blocked_){
-        //      core_->camera().zoom(event.y > 0 ? torero::camera::Zoom::In : torero::camera::Zoom::Out);
-        has_changed_ = true;
       }
     }
 
     void event_handler::text_input_event(const SDL_TextInputEvent &event){
-      rr::formatted("pressed key: %s\n", rr::message::attention, event.text);
+      rr::formatted("pressed key: %s -> is space: %s\n", rr::message::attention, event.text,
+                    gui::input::is_space(event.text) ? "true" : "false");
+//      if(current_input_) current_input_->insert(event.text);
     }
 
     void event_handler::text_edit_event(const SDL_TextEditingEvent &event){

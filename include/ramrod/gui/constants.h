@@ -12,6 +12,10 @@ namespace ramrod {
       constexpr int float_4D = float_1D * 4;
     } // namespace: byte_sizes
 
+    namespace identifiers {
+      constexpr float max_identifier_count = 50000.0f;
+    } // namespace: identifiers
+
     namespace sprite {
       constexpr std::uint32_t width  = 512;
       constexpr std::uint32_t height = 512;
@@ -36,12 +40,19 @@ namespace ramrod {
     constexpr char rubik_medium_image[]  = RAMROD_GUI_DIR "/resources/fonts/rubik_medium.png";
     constexpr char rubik_medium_info[]   = RAMROD_GUI_DIR "/resources/fonts/rubik_medium.fnt";
     // OpenGL shaders
-    constexpr char text_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.frag";
-    constexpr char text_shader_geom[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.geom";
-    constexpr char text_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.vert";
-    constexpr char image_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/simple_image.frag";
-    constexpr char image_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_image.vert";
+    constexpr char text_shader_frag[]   = RAMROD_GUI_DIR "/resources/shaders/simple_text.frag";
+    constexpr char text_shader_geom[]   = RAMROD_GUI_DIR "/resources/shaders/simple_text.geom";
+    constexpr char text_shader_vert[]   = RAMROD_GUI_DIR "/resources/shaders/simple_text.vert";
+    constexpr char sprite_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/gui_sprite.frag";
+    constexpr char sprite_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/gui_sprite.vert";
 
+    namespace uniform_buffer {
+      constexpr int window_binding_size = gui::byte_sizes::float_4D * 2;
+      constexpr int window_size_offset  = 0;
+      constexpr int font_size_offset    = gui::byte_sizes::float_4D;
+      constexpr int window_size_bytes   = gui::byte_sizes::float_2D;
+      constexpr int font_size_bytes     = gui::byte_sizes::float_1D;
+    } // namespace: uniform_buffer
   } // namespace: gui
 } // namespace: ramrod
 

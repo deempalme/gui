@@ -1,5 +1,6 @@
 #include "ramrod/gui/input_text.h"
 
+#include "ramrod/gl/shader.h"
 #include "ramrod/gui/constants.h"    // for float_4D, float_2D
 #include "ramrod/gui/enumerators.h"  // for position, texture
 
@@ -28,6 +29,20 @@ namespace ramrod {
       background_buffer_.vertex_release();
 
       change_size();
+    }
+
+    input_text::~input_text(){}
+
+    void input_text::paint(){
+      // Painting the background
+      sprite_shader_->set_value(u_background_color_, background_color());
+      sprite_shader_->set_value(u_border_color_, border_color());
+      sprite_shader_->set_value(u_id_, static_cast<int>(id()));
+      background_buffer_.vertex_bind();
+      background_buffer_.draw(GL_TRIANGLE_STRIP);
+      background_buffer_.vertex_release();
+      // Painting the text
+      gui::input::paint();
     }
 
     // ::::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::

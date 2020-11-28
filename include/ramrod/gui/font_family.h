@@ -1,5 +1,5 @@
-#ifndef RAMROD_GUI_FONT_LOADER_H
-#define RAMROD_GUI_FONT_LOADER_H
+#ifndef RAMROD_GUI_FONT_FAMILY_H
+#define RAMROD_GUI_FONT_FAMILY_H
 
 #include <string>
 #include <map>
@@ -9,7 +9,7 @@
 
 namespace ramrod {
   namespace gui {
-    class font_loader
+    class font_family
     {
     public:
       /**
@@ -18,13 +18,18 @@ namespace ramrod {
        *                           the font's distance field
        * @param font_info_path Path towards the font's info file with extension .fnt
        */
-      font_loader(const std::string &font_distance_path,
+      font_family(const std::string &font_distance_path,
                   const std::string &font_info_path);
       /**
        * @brief Getting all the loaded characters from this font
        * @return map with the ascii code as KEY and the character information as VALUE
        */
       const std::map<const std::string, gui::text::character> &characters();
+      /**
+       * @brief Indicates if the font family was not found or incorrectly set
+       * @return `true`if font was not found or it has errors
+       */
+      bool error();
       /**
        * @brief Getting the font name that is obtained from the info file (.fnt)
        * @return String containing the real font name
@@ -65,4 +70,4 @@ namespace ramrod {
   } // namespace: gui
 } // namespace: ramrod
 
-#endif // RAMROD_GUI_FONT_LOADER_H
+#endif // RAMROD_GUI_FONT_FAMILY_H

@@ -5,8 +5,11 @@
 #include <SDL2/SDL_events.h>  // for SDL_Event, SDL_KeyboardEvent, SDL_Mouse...
 #include <SDL2/SDL_rect.h>    // for SDL_Rect
 
+#include "ramrod/gui/types.h"
+
 namespace ramrod {
   namespace gui {
+    class input;
     class window;
 
     class event_handler
@@ -65,6 +68,10 @@ namespace ramrod {
 
       int key_modifier_;
       int previous_x_, previous_y_;
+      std::size_t current_element_;
+      std::size_t current_children_;
+      const gui::identifier *current_identifier_;
+      gui::input *current_input_;
     };
   } // namespace: gui
 } // namespace: ramrod

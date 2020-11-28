@@ -9,93 +9,24 @@
 #include "ramrod/gui/types.h"    // for position, size, selection
 
 namespace ramrod {
+  namespace gl { class shader; }
+
   namespace gui {
+    class font_family;
+
     class input : public gui::element
     {
     public:
       input(const std::string &initial_text,
             const float width, const float height, const float position_x,
             const float position_y, const std::size_t tab_index);
+      virtual ~input();
       /**
-       * @brief Loses the focus for this element
+       * @brief Getting the background color
+       *
+       * @return &float[4] Normalized color in B, G, R and A components
        */
-      void blur();
-      /**
-       * @brief Clearing all the characters
-       *
-       * @return `true` if there was content
-       */
-      bool clear();
-      /**
-       * @brief Focuses this element
-       *
-       * @param select_all `true` to select all its content
-       */
-      void focus(const bool select_all = true);
-      /**
-       * @brief Inserting text into this element
-       *
-       * @param text Text that will be inserted at the current selected position
-       *
-       * @return `false`if the full text with the the new insertion is larger than
-       * the maximum allowed
-       */
-      bool insert(const std::string &text);
-      /**
-       * @brief Getting the maximum number of characters that should fit this element
-       *
-       * @return Maximum number of characters for this element
-       */
-      std::size_t maximum_characters();
-      /**
-       * @brief Setting a new maximum number of characters for this element
-       *
-       * @param new_maximum New maximum number of charactes' value
-       */
-      void maximum_characters(const std::size_t new_maximum);
-      /**
-       * @brief Selecting text
-       *
-       * @param start Starting character's index to be selected
-       * @param count Number of characters to select
-       *
-       * @return The number of selected characters
-       */
-      std::size_t select(const std::size_t start, const std::size_t count);
-      /**
-       * @brief Selecting all the text in this element
-       *
-       * @return The number of selected characters
-       */
-      std::size_t select_all();
-      /**
-       * @brief Getting the selected text
-       *
-       * @return A string containing all the selected text
-       */
-      std::string selection();
-      /**
-       * @brief Getting the total number of characters in this text input
-       *
-       * @return Number of characters in this text input
-       */
-      std::size_t total();
-      /**
-       * @brief Getting all the text inside this text input
-       *
-       * @return All the text inside
-       */
-      const std::string &value();
-      /**
-       * @brief Changing the whole text
-       *
-       * @param new_text The new text
-       *
-       * @return `false` if string is larger than the maximum allowed
-       */
-      bool value(const std::string &new_text);
-
-    protected:
+      float *background_color();
       /**
        * @brief Setting the background color
        *
@@ -120,6 +51,24 @@ namespace ramrod {
                                     const float green,
                                     const float blue,
                                     const float alpha);
+      /**
+       * @brief Removes the previous character from the current position
+        */
+      void backspace();
+      /**
+       * @brief Removes the previous characters from the current position until a space is found
+       */
+      void backspace_word();
+      /**
+       * @brief Loses the focus for this element
+       */
+      void blur();
+      /**
+       * @brief Getting the border color
+       *
+       * @return &float[4] Normalized color in B, G, R and A components
+       */
+      float *border_color();
       /**
        * @brief Setting the border color
        *
@@ -150,6 +99,127 @@ namespace ramrod {
        * @param width Floating value for border width
        */
       virtual void border_width(const float width);
+      /**
+       * @brief Changes this element's font family using a name
+       *
+       * @param font_name String name of the font family as shown in gui::font_family::font_name()
+       *
+       * @return `false` if font was not found
+       */
+      bool change_font(const std::string &font_name);
+      /**
+       * @brief Changes this element's font family using an object
+       *
+       * @param font_family Pointer to a gui::font_family object
+       *
+       * @return `false` if font_family is nullptr
+       */
+      bool change_font(gui::font_family *font_family);
+      /**
+       * @brief Clearing all the characters
+       *
+       * @return `true` if there was content
+       */
+      bool clear();
+      /**
+       * @brief Deletes the next character from the current position
+       */
+      void delete_character();
+      /**
+       * @brief Deletes an entire line (in this case, all characters)
+       */
+      void delete_line();
+      /**
+       * @brief Deletes the next characters from the current position until a space is found
+       */
+      void delete_word();
+      /**
+       * @brief Focuses this element
+       *
+       * @param select_all `true` to select all its content
+       */
+      void focus(const bool select_all = true);
+      /**
+       * @brief Positioning the cursor toa specified character position
+       * @param position The character's position where you want to go or
+       *                 use a negative to start from the end
+       * @return `false` if position is not found
+       */
+      bool goto_position(const int position);
+      /**
+       * @brief Inserting text into this element
+       *
+       * @param text Text that will be inserted at the current selected position
+       *
+       * @return `false`if the full text with the the new insertion is larger than
+       * the maximum allowed
+       */
+      bool insert(const std::string &text);
+      /**
+       * @brief Getting the maximum number of characters that should fit this element
+       *
+       * @return Maximum number of characters for this element
+       */
+      std::size_t maximum_characters();
+      /**
+       * @brief Setting a new maximum number of characters for this element
+       *
+       * @param new_maximum New maximum number of charactes' value
+       */
+      void maximum_characters(const std::size_t new_maximum);
+      /**
+       * @brief Moves the cursor position to the next character
+       */
+      void next_character();
+      /**
+       * @brief Moves the cursor position to the next word
+       */
+      void next_word();
+      /**
+       * @brief Painting the text
+       */
+      virtual void paint();
+      /**
+       * @brief Moves the cursor position to the previous character
+       */
+      void previous_character();
+      /**
+       * @brief Moves the cursor position to the previous word
+       */
+      void previous_word();
+      /**
+       * @brief Selecting text
+       *
+       * @param start Starting character's index to be selected
+       * @param count Number of characters to select
+       *
+       * @return The number of selected characters
+       */
+      std::size_t select(const std::size_t start, const std::size_t count);
+      /**
+       * @brief Selecting all the text in this element
+       *
+       * @return The number of selected characters
+       */
+      std::size_t select_all();
+      /**
+       * @brief Getting the selected text
+       *
+       * @return A string containing all the selected text
+       */
+      std::string selection();
+      /**
+       * @brief Getting the current tab index of this element
+       *
+       * @return Tab index number
+       */
+      std::size_t tab_index();
+      /**
+       * @brief Setting a new tab index number for this element
+       *
+       * @param new_tab_index New tab index number
+       */
+      void tab_index(const std::size_t new_tab_index);
       /**
        * @brief Setting the text color
        *
@@ -186,8 +256,63 @@ namespace ramrod {
        * @param size New size in em
        */
       virtual void text_size(const float size);
+      /**
+       * @brief Getting the total number of characters in this text input
+       *
+       * @return Number of characters in this text input
+       */
+      std::size_t total();
+      /**
+       * @brief Getting all the text inside this text input
+       *
+       * @return All the text inside
+       */
+      const std::string &value();
+      /**
+       * @brief Changing the whole text
+       *
+       * @param new_text The new text
+       *
+       * @return `false` if string is larger than the maximum allowed
+       */
+      bool value(const std::string &new_text);
 
-      virtual void paint();
+      // ::::::::::::::::::::::::::::::::::: Static functions :::::::::::::::::::::::::::::::::::::
+
+      /**
+       * @brief Checks if the character could be considered as a new line
+       *
+       * @param character The character to be analized as a char
+       *
+       * @return `true` if it is a line breaker
+       */
+      static bool is_new_line(const char *character);
+      /**
+       * @brief Checks if the character could be considered as a new line
+       *
+       * @param character The character to be analized as a string's reference
+       *
+       * @return `true` if it is a line breaker
+       */
+      static bool is_new_line(std::string::reference character);
+      /**
+       * @brief Checks if the character could be considered as a word separator
+       *
+       * @param character The character to be analized as a char
+       *
+       * @return `true` if it is a word separator
+       */
+      static bool is_space(const char *character);
+      /**
+       * @brief Checks if the character could be considered as a word separator
+       *
+       * @param character The character to be analized as a string's reference
+       *
+       * @return `true` if it is a word separator
+       */
+      static bool is_space(std::string::reference character);
+
+    protected:
 
       /*
       virtual void blur_event(const gui::event::focus &event);
@@ -232,9 +357,20 @@ namespace ramrod {
 
       gui::selection selection_;
 
+      inline static const gl::shader *sprite_shader_ = nullptr;
+      inline static unsigned int u_background_color_ = 0;
+      inline static unsigned int u_border_color_ = 0;
+      inline static unsigned int u_id_ = 0;
+
     private:
+      std::size_t tab_index_;
       ramrod::gl::buffer text_buffer_;
+      gui::pixel<float> background_color_;
+      gui::pixel<float> border_color_;
+      float border_size_;
+      gui::pixel<float> text_color_;
       float text_size_;
+      gui::font_family *font_;
 
       inline static unsigned int u_text_size_ = 0;
     };

@@ -2,6 +2,7 @@
 #define RAMROD_GUI_ELEMENT_H
 
 #include <cstdint>
+#include <string>
 
 #include "ramrod/gui/types.h"  // for position, size, selection
 
@@ -11,8 +12,18 @@ namespace ramrod {
     {
     public:
       element(const float width, const float height,
-              const float position_x, const float position_y,
-              const std::size_t tab_index);
+              const float position_x, const float position_y);
+      /**
+       * @brief Hides this element
+       * @param hide Indicates if it should be hidden
+       */
+      void hide(const bool hide = true);
+      /**
+       * @brief Indicates if this element is hidden
+       *
+       * @return `true` if hidden
+       */
+      bool hidden();
       /**
        * @brief Getting this element's id
        *
@@ -46,27 +57,19 @@ namespace ramrod {
        * @param y Vertical position from the top-left corner [in pixels]
        */
       void position(const float x, const float y);
-      /**
-       * @brief Getting the current tab index of this element
-       *
-       * @return Tab index number
-       */
-      std::size_t tab_index();
-      /**
-       * @brief Setting a new tab index number for this element
-       *
-       * @param new_tab_index New tab index number
-       */
-      void tab_index(const std::size_t new_tab_index);
+
+      // ::::::::::::::::::::::::::::::::::: Virtual functions ::::::::::::::::::::::::::::::::::::
+
+      virtual void paint();
 
     protected:
       virtual void change_size();
 
       std::size_t id_;
-      std::size_t tab_index_;
       gui::position<float> position_;
       gui::size<float> size_;
       bool update_, resize_;
+      bool hidden_;
 
     };
   } // namespace: gui

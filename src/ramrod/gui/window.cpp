@@ -25,6 +25,7 @@ namespace ramrod {
   namespace gui {
     window::window(const int width, const int height, const std::string &title) :
       event_handler(this),
+      gui_manager(this),
       window_(nullptr),
       window_id_{0},
       context_(),
@@ -46,18 +47,7 @@ namespace ramrod {
         exit(ramrod::gui::error::SDL2_not_loaded);
       }
 
-      SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-      SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
-      SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, SDL_TRUE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+      sdl_attribute_setting();
 
       // SDL window creation
       // --------------------
@@ -111,14 +101,9 @@ namespace ramrod {
       }
 
       SDL_GL_SetSwapInterval(1);
-      initialize();
-
-      // detects the maximum anisotropic filtering samples
-      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_filtering_);
-      max_filtering_ = (max_filtering_ > 8.0f)? 8.0f : max_filtering_;
-      ramrod::gl::texture::set_max_filtering(max_filtering_);
 
       SDL_StopTextInput();
+      main_initialize();
     }
 
     window::~window(){
@@ -154,18 +139,21 @@ namespace ramrod {
         SDL_ShowWindow(window_);
         if(infinite_loop)
           while(!closing_){
+            // Polls all events that happened between frames
+            poll_events();
 
             // Checks if the windows is visible and there are at least a change
-            if(!hidden_ && has_changed_){
+            if(!hidden_/* && has_changed_*/){
               has_changed_ = false;
 
+              clear();
               paint();
               SDL_GL_SwapWindow(window_);
             }
             update();
 
             if(sleep_time > 0)
-              wait_for_events(sleep_time);
+              sleep(sleep_time);
             else
               wait_for_events();
           }
@@ -213,8 +201,8 @@ namespace ramrod {
       return SDL_GetTicks();
     }
 
-    uint32_t window::window_id(){
-      return window_id_;
+    int window::height(){
+      return window_properties_.h;
     }
 
     void window::maximize(const bool maximize){
@@ -245,6 +233,7 @@ namespace ramrod {
 
     void window::restart_viewport(){
       glViewport(0, 0, window_properties_.w, window_properties_.h);
+      resize();
     }
 
     void window::sdl_error(){
@@ -273,6 +262,7 @@ namespace ramrod {
     }
 
     void window::screen_redraw(){
+      clear();
       paint();
       SDL_GL_SwapWindow(window_);
     }
@@ -286,7 +276,7 @@ namespace ramrod {
     }
 
     gui::size<int> window::size(){
-      return gui::size<int>{ display_properties_.w, display_properties_.h };
+      return gui::size<int>{ window_properties_.w, window_properties_.h };
     }
 
     void window::size(const int width, const int height){
@@ -320,6 +310,10 @@ namespace ramrod {
         SDL_ShowWindow(window_);
     }
 
+    int window::width(){
+      return window_properties_.w;
+    }
+
     const std::string window::window_icon(){
       return icon_path_;
     }
@@ -331,9 +325,43 @@ namespace ramrod {
       return true;
     }
 
+    uint32_t window::window_id(){
+      return window_id_;
+    }
+
     // ::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
+    void window::clear(){
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
     void window::initialize(){
+    }
+
+    void window::paint(){
+      gui::gui_manager::paint();
+    }
+
+    void window::sdl_attribute_setting(){
+      SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+      SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+      SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+      SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+      SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+      SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
+      SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, SDL_TRUE);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    }
+
+    void window::update(){}
+
+    // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS :::::::::::::::::::::::::::::::::::::
+
+    void window::main_initialize(){
       // configure global opengl state
       // -----------------------------
       // setting the background color
@@ -349,19 +377,22 @@ namespace ramrod {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       // Avoiding the rendering of all back faces
-      glFrontFace(GL_CCW);
-      glCullFace(GL_BACK);
-      glEnable(GL_CULL_FACE);
+//      glFrontFace(GL_CCW);
+//      glCullFace(GL_BACK);
+//      glEnable(GL_CULL_FACE);
+
+      // detects the maximum anisotropic filtering samples
+      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_filtering_);
+      max_filtering_ = (max_filtering_ > 8.0f)? 8.0f : max_filtering_;
+      ramrod::gl::texture::set_max_filtering(max_filtering_);
+
+//      glPixelStorei(GL_PACK_ALIGNMENT, 1);
+//      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+      gui::gui_manager::main_initialize();
+
+      initialize();
     }
-
-    void window::paint(){
-      //clearing the screen of old information
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-
-    void window::update(){}
-
-    // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS :::::::::::::::::::::::::::::::::::::
 
     bool window::load_icon(){
       gui::image_loader new_icon(icon_path_, false, 4);

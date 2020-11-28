@@ -6,15 +6,23 @@
 namespace ramrod {
   namespace gui {
     element::element(const float width, const float height,
-                     const float position_x, const float position_y,
-                     const std::size_t tab_index) :
-      id_{gui::gui_manager::last_element_id() + 1},
-      tab_index_{tab_index},
+                     const float position_x, const float position_y) :
+      id_{gui::gui_manager::insert_new_element(this)},
       position_{position_x, position_y},
       size_{width, height},
       update_{false},
-      resize_{false}
-    {}
+      resize_{false},
+      hidden_{false}
+    {
+    }
+
+    void element::hide(const bool hide){
+      hidden_ = hide;
+    }
+
+    bool element::hidden(){
+      return hidden_;
+    }
 
     std::size_t element::id(){
       return id_;
@@ -46,13 +54,7 @@ namespace ramrod {
       return update_ = true;
     }
 
-    std::size_t element::tab_index(){
-      return tab_index_;
-    }
-
-    void element::tab_index(const std::size_t new_tab_index){
-      tab_index_ = new_tab_index;
-    }
+    void element::paint(){}
 
     // :::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
 

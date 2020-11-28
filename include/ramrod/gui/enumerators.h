@@ -11,6 +11,19 @@ namespace ramrod {
       };
     } // namespace: attribute
 
+    namespace framebuffer {
+      enum id : unsigned int {
+        display = 0,
+        ids     = 1
+      };
+    } // namespace: framebuffer
+
+    namespace uniform_buffer {
+      enum location : unsigned int {
+        window = 1
+      };
+    } // namespace: uniform_buffer
+
     namespace keyboard {
       enum key_mod : int {
         none               = 0,
@@ -50,7 +63,8 @@ namespace ramrod {
       enum id : unsigned int {
         albedo     = 0,
         sprite     = 1,
-        font_atlas = 2
+        font_atlas = 2,
+        ids_frame  = 3
       };
     } // namespace: texture
 

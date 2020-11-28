@@ -21,6 +21,23 @@ namespace ramrod {
       T y = 0;
     };
 
+    template<typename T>
+    union pixel {
+      struct color {
+        T b;
+        T g;
+        T r;
+        T a;
+      } color;
+      T data[4];
+    };
+
+    typedef struct identifier {
+      std::size_t element;
+      std::size_t children;
+      bool pointing_next;
+    } identifier;
+
     typedef struct selection {
       std::size_t start = 0;
       std::size_t count = 0;

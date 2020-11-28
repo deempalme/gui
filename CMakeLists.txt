@@ -18,7 +18,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     include/ramrod/gui/element.h
     include/ramrod/gui/event_handler.h
     include/ramrod/gui/file_manager.h
-    include/ramrod/gui/font_loader.h
+    include/ramrod/gui/font_family.h
     include/ramrod/gui/gui_manager.h
     include/ramrod/gui/image_loader.h
     include/ramrod/gui/input.h
@@ -32,7 +32,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     src/ramrod/gui/element.cpp
     src/ramrod/gui/event_handler.cpp
     src/ramrod/gui/file_manager.cpp
-    src/ramrod/gui/font_loader.cpp
+    src/ramrod/gui/font_family.cpp
     src/ramrod/gui/gui_manager.cpp
     src/ramrod/gui/image_loader.cpp
     src/ramrod/gui/input.cpp

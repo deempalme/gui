@@ -7,12 +7,13 @@
 
 #include "SDL_video.h"                 // for SDL_GLContext
 #include "ramrod/gui/event_handler.h"  // for event_handler
+#include "ramrod/gui/gui_manager.h"    // for gui_manager
 #include "ramrod/gui/types.h"          // for position, size
 
 namespace ramrod {
   namespace gui {
     class window :
-        public event_handler
+        public gui::event_handler, public gui::gui_manager
     {
     public:
       explicit window(const int width = 1024, const int height = 512,
@@ -107,10 +108,10 @@ namespace ramrod {
        */
       std::uint32_t get_time();
       /**
-       * @brief Getting this window's ID
-       * @return Id numeric value
+       * @brief Getting the window's height
+       * @return Window's height in pixels
        */
-      std::uint32_t window_id();
+      int height();
       /**
        * @brief Maximizes or restores the window
        * @param maximize `true` to maximize, `false` to restore its size
@@ -170,7 +171,7 @@ namespace ramrod {
        */
       float screen_max_filtering(const float new_max_filtering_value);
       /**
-       * @brief Clear and paint the screen
+       * @brief Paint the screen without cleaning screen
        */
       void screen_paint();
       /**
@@ -239,6 +240,11 @@ namespace ramrod {
        */
       void visibility(const bool hide);
       /**
+       * @brief Getting the window's width
+       * @return Window's width in pixels
+       */
+      int width();
+      /**
        * @brief Getting the path of the window's icon
        * @return Absolute path of the window's icon
        */
@@ -249,46 +255,53 @@ namespace ramrod {
        * @return `false` if file was not found
        */
       bool window_icon(const std::string &icon_path);
+      /**
+       * @brief Getting this window's ID
+       * @return Id numeric value
+       */
+      std::uint32_t window_id();
 
     protected:
       /**
+       * @brief OpenGL clearing the screen
+       *
+       * This function is triggered in each frame if you are using
+       * `execute(..., const bool infinite_loop = true, ...)` to clear
+       * the openGL screen.
+       */
+      virtual void clear();
+      /**
        * @brief Initializes OpenGL capabilities
        *
-       * List of things this do:
-       *   1. Defines glClearColor, black by default
-       *   2. Disables GL_DEPTH_TEST
-       *   3. Disables GL_TEXTURE_CUBE_MAP_SEAMLESS
-       *   4. Disables GL_PROGRAM_POINT_SIZE
-       *   5. Enables blending: GL_BLEND
-       *   6. Defines beldning functions: GL_SRC_ALPHA as GL_ONE_MINUS_SRC_ALPHA
-       *   7. Enables face culling: with GL_CCW and GL_BACK
-       *
-       * If you override this function make sure you call `window::initialize()` to
-       * define necessary capabilites before changing or asssigning your defined
-       * values to avoid an unexpected openGL behaviour.
-       *
+       * This function will be triggered after the window creation
        */
       virtual void initialize();
       /**
-       * @brief OpenGL clearing and painting of the screen
+       * @brief OpenGL painting of the screen
        *
-       * List of thing this do:
-       *   1. Clears the color and depth buffer
-       *
-       * If you override this function make sure you call your own glClear().
-       *
+       * This function is triggered in each frame if you are using
+       * `execute(..., const bool infinite_loop = true, ...)` to paint
+       * the openGL screen.
        */
       virtual void paint();
+      /**
+       * @brief Setting the SDL attributes
+       *
+       * This function is called when this object is constructed, before creating the window,
+       * if you want to change the default SDL properties, you could overload this function.
+       */
+      virtual void sdl_attribute_setting();
       /**
        * @brief Update function defined to be overriden
        *
        * This function will be called after the screen paint in every frame, you
        * could override it to make data updates in each frame.
-       *
        */
       virtual void update();
 
     private:
+      void main_initialize();
+
       bool load_icon();
 
       SDL_Window *window_;
