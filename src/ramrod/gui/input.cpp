@@ -20,7 +20,7 @@ namespace ramrod {
       tab_index_{gui::gui_manager::create_new_tab_input(this, tab_index)},
       text_buffer_(false),
       background_color_{{0, 0, 0, 1.0f}},
-      border_color_{{109.0f/255.0f, 185.0f/255.0f, 221.0f/255.0f, 1.0f}},
+      border_color_{{221.0f/255.0f, 185.0f/255.0f, 109.0f/255.0f, 1.0f}},
       border_size_{3.0f},
       text_color_{{1.0f, 1.0f, 1.0f, 1.0f}},
       text_size_{1.0f},

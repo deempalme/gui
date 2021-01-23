@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "ramrod/console.h"
+#include "ramrod/gl/error.h"
 #include "ramrod/gl/frame_buffer.h"
 #include "ramrod/gl/pixel_buffer.h"
 #include "ramrod/gl/shader.h"
@@ -227,18 +228,24 @@ namespace ramrod {
     }
 
     void gui_manager::main_initialize(){
+      GLenum error;
       load_default_font();
       get_font("");
 
+      if((error = gl::error::code()) != GL_NO_ERROR)
+        rr::formatted("Error before: %d -> %s Extra: %s\n", error,
+                      gl::error::message(error).c_str(), gl::error::message().c_str());
+
       if(!sprite_){
-        gui::image_loader new_image(gui::default_sprite_path);
+        gui::image_loader new_image(gui::default_sprite_path, false);
 
         if(new_image.data()){
-          sprite_ = new ramrod::gl::texture(true, gui::texture::sprite);
-          sprite_->activate();
+          sprite_ = new ramrod::gl::texture(true, gui::texture::sprite, false);
           sprite_->bind();
+          sprite_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
           sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
                             new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+          sprite_->release();
         }
       }/*
       if(!text_shader_){
@@ -297,21 +304,35 @@ namespace ramrod {
         window_buffer_->release();
       }
       if(!window_binding_){
-        const float window_size[2] = { static_cast<float>(parent_->width()),
-                                       static_cast<float>(parent_->height()) };
-        const float font_size = static_cast<float>(global_font_size_);
+        const float u_window[3] = { static_cast<float>(parent_->width()),
+                                    static_cast<float>(parent_->height()),
+                                    static_cast<float>(global_font_size_) };
 
         window_binding_ = new gl::uniform_buffer(true);
         window_binding_->bind();
-        window_binding_->allocate(nullptr, gui::uniform_buffer::window_binding_size,
-                                  GL_DYNAMIC_DRAW);
-        window_binding_->allocate_section(window_size, gui::uniform_buffer::window_size_bytes,
-                                          gui::uniform_buffer::window_size_offset);
-        window_binding_->allocate_section(&font_size, gui::uniform_buffer::font_size_bytes,
-                                          gui::uniform_buffer::font_size_offset);
-        window_binding_->bind_base(gui::uniform_buffer::window);
+        window_binding_->allocate(u_window, gui::uniform_buffer::window_binding_size,
+                                  GL_STATIC_DRAW);
         window_binding_->release();
+        window_binding_->bind_base(gui::uniform_buffer::window);
+
+        const GLchar *names[] = {"u_window_size", "u_font_size"};
+        GLuint values[2];
+        glGetUniformIndices(sprite_shader_->id(), 2, names, values);
+        rr::formatted("uws: %u, ufs: %u\n", rr::message::warning, values[0], values[1]);
+
+        GLint offsets[2];
+        glGetActiveUniformsiv(sprite_shader_->id(), 2, values, GL_UNIFORM_OFFSET, offsets);
+        rr::formatted("uwso: %d, ufso: %d\n", rr::message::warning, offsets[0], offsets[1]);
+
+        rr::formatted("uws: %d\n", rr::message::warning,
+                      sprite_shader_->uniform_block_data_size("u_window"));
+        rr::formatted("uwb: %d\n", rr::message::warning,
+                      sprite_shader_->uniform_block_binding("u_window"));
+        rr::formatted("uwi: %d\n", rr::message::warning,
+                      sprite_shader_->uniform_block_index("u_window"));
       }
+      if((error = gl::error::code()) != GL_NO_ERROR)
+        rr::formatted("Error after: %d -> %s\n", error, gl::error::message(error).c_str());
     }
 
     void gui_manager::paint(){
@@ -330,15 +351,13 @@ namespace ramrod {
                             GL_FLOAT, GL_RGBA32F);
       window_ids_->release();
 
-      const float window_size[2] = { static_cast<float>(parent_->width()),
-                                     static_cast<float>(parent_->height()) };
-      const float font_size = static_cast<float>(global_font_size_);
+      const float u_window[3] = { static_cast<float>(parent_->width()),
+                                  static_cast<float>(parent_->height()),
+                                  static_cast<float>(global_font_size_) };
 
       window_binding_->bind();
-      window_binding_->allocate_section(window_size, gui::uniform_buffer::window_size_bytes,
+      window_binding_->allocate_section(u_window, gui::uniform_buffer::window_size_bytes,
                                         gui::uniform_buffer::window_size_offset);
-      window_binding_->allocate_section(&font_size, gui::uniform_buffer::font_size_bytes,
-                                        gui::uniform_buffer::font_size_offset);
       window_binding_->release();
     }
   } // namespace: gui

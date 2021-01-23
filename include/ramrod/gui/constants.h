@@ -47,11 +47,11 @@ namespace ramrod {
     constexpr char sprite_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/gui_sprite.vert";
 
     namespace uniform_buffer {
-      constexpr int window_binding_size = gui::byte_sizes::float_4D * 2;
-      constexpr int window_size_offset  = 0;
-      constexpr int font_size_offset    = gui::byte_sizes::float_4D;
-      constexpr int window_size_bytes   = gui::byte_sizes::float_2D;
       constexpr int font_size_bytes     = gui::byte_sizes::float_1D;
+      constexpr int font_size_offset    = gui::byte_sizes::float_2D;
+      constexpr int window_binding_size = gui::byte_sizes::float_4D;
+      constexpr int window_size_bytes   = gui::byte_sizes::float_2D;
+      constexpr int window_size_offset  = 0;
     } // namespace: uniform_buffer
   } // namespace: gui
 } // namespace: ramrod

@@ -24,9 +24,9 @@ namespace ramrod {
     template<typename T>
     union pixel {
       struct color {
-        T b;
-        T g;
         T r;
+        T g;
+        T b;
         T a;
       } color;
       T data[4];

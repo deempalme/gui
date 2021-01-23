@@ -12,7 +12,7 @@ namespace ramrod {
     } // namespace: attribute
 
     namespace framebuffer {
-      enum id : unsigned int {
+      enum id : int {
         display = 0,
         ids     = 1
       };
@@ -60,7 +60,7 @@ namespace ramrod {
     } // namespace: attribute_size
 
     namespace texture {
-      enum id : unsigned int {
+      enum id : int {
         albedo     = 0,
         sprite     = 1,
         font_atlas = 2,

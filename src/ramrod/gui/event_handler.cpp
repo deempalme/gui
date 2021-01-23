@@ -198,7 +198,7 @@ namespace ramrod {
       if(!mouse_blocked_){
         current_identifier_ = window_->read_pixel(event.x, event.y);
         if(current_identifier_->element != current_element_){
-          // Changed element
+//          // Changed element
         }
       }
     }

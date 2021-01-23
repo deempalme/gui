@@ -2,7 +2,7 @@
 #define RAMROD_GUI_WINDOW_H
 
 #define SDL_MAIN_HANDLED
-#include <stdint.h>                    // for uint32_t
+#include <cstdint>                     // for uint32_t
 #include <string>                      // for string, allocator
 
 #include "SDL_video.h"                 // for SDL_GLContext
@@ -65,7 +65,7 @@ namespace ramrod {
        *         properly: `EXIT_SUCCESS`, `GLFW_NOT_LOADED`, `WINDOW_NOT_LOADED`,
        *         `GLAD_NOT_LOADED` or `EXISTING_WINDOW`.
        */
-      int execute(const bool infinite_loop = true, int sleep_time = 1000);
+      int execute(const bool infinite_loop = true, std::uint32_t sleep_time = 1000);
       /**
        * @brief Execute window with extra parameters
        *
@@ -90,9 +90,9 @@ namespace ramrod {
        *         properly: `EXIT_SUCCESS`, `GLFW_NOT_LOADED`, `WINDOW_NOT_LOADED`,
        *         `GLAD_NOT_LOADED` or `EXISTING_WINDOW`.
        */
-      int execute(int width, int height, const std::string title = "Untitled",
+      int execute(int width, int height, const std::string &title,
                   const bool full_screen = false, const bool maximized = false,
-                  const bool infinite_loop = true, int sleep_time = 1000);
+                  const bool infinite_loop = true, std::uint32_t sleep_time = 1000);
       /**
        * @brief Making or exiting the full screen mode
        *
@@ -211,7 +211,7 @@ namespace ramrod {
        * @brief Sleeping during specified milliseconds
        * @param milliseconds Number of milliseconds to sleep
        */
-      void sleep(const uint32_t milliseconds);
+      void sleep(const std::uint32_t milliseconds);
       /**
        * @brief Getting the window's title
        * @return String containing the window's title
@@ -312,6 +312,9 @@ namespace ramrod {
 
       float max_filtering_;
       float diagonal_dpi_, horizontal_dpi_, vertical_dpi_;
+
+      std::uint32_t updated_time_;
+      bool initialized_;
 
       bool error_;
       int error_log_;

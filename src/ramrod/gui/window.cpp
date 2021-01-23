@@ -13,9 +13,7 @@
 #include "SDL_surface.h"                            // for SDL_FreeSurface
 #include "SDL_timer.h"                              // for SDL_Delay, SDL_Ge...
 #include "glad/glad.h"                              // for glDisable, gladLo...
-#include "ramrod/console/endl.h"                    // for endl
-#include "ramrod/console/error.h"                   // for error_stream, error
-#include "ramrod/console/regular.h"                 // for regular, regular_...
+#include "ramrod/console.h"
 #include "ramrod/gl/texture.h"                      // for texture
 #include "ramrod/gui/enumerators.h"                 // for GLAD_not_loaded
 #include "ramrod/gui/file_manager.h"                // for file_manager
@@ -35,6 +33,8 @@ namespace ramrod {
       diagonal_dpi_{0.0f},
       horizontal_dpi_{0.0f},
       vertical_dpi_{0.0f},
+      updated_time_{0},
+      initialized_{false},
       error_{false},
       error_log_{0}
     {
@@ -134,11 +134,19 @@ namespace ramrod {
       return closing_;
     }
 
-    int window::execute(const bool infinite_loop, int sleep_time){
+    int window::execute(const bool infinite_loop, std::uint32_t sleep_time){
       if(!error_){
         SDL_ShowWindow(window_);
         if(infinite_loop)
           while(!closing_){
+            if(sleep_time == 0 && initialized_){
+              wait_for_events();
+            }else if(initialized_ && (get_time() - updated_time_) < sleep_time){
+              sleep(5);
+              continue;
+            }
+            // Gets new update's time
+            updated_time_ = get_time();
             // Polls all events that happened between frames
             poll_events();
 
@@ -152,19 +160,16 @@ namespace ramrod {
             }
             update();
 
-            if(sleep_time > 0)
-              sleep(sleep_time);
-            else
-              wait_for_events();
+            initialized_ = true;
           }
         return EXIT_SUCCESS;
       }else
         return error_log_;
     }
 
-    int window::execute(int width, int height, const std::string title,
+    int window::execute(int width, int height, const std::string &title,
                         const bool full_screen, const bool maximized,
-                        const bool infinite_loop, int sleep_time){
+                        const bool infinite_loop, std::uint32_t sleep_time){
       if(!error_){
         SDL_SetWindowTitle(window_, title.c_str());
 
@@ -286,7 +291,7 @@ namespace ramrod {
       has_changed_ = true;
     }
 
-    void window::sleep(const uint32_t milliseconds){
+    void window::sleep(const std::uint32_t milliseconds){
       SDL_Delay(milliseconds);
     }
 
@@ -325,7 +330,7 @@ namespace ramrod {
       return true;
     }
 
-    uint32_t window::window_id(){
+    std::uint32_t window::window_id(){
       return window_id_;
     }
 
@@ -365,7 +370,7 @@ namespace ramrod {
       // configure global opengl state
       // -----------------------------
       // setting the background color
-      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+      glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
       // this line allows anti-aliasing to create fine edges
       //    glEnable(GL_MULTISAMPLE);
       // this line allows z-buffer to avoid rear objects to appear in front
@@ -377,17 +382,17 @@ namespace ramrod {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       // Avoiding the rendering of all back faces
-//      glFrontFace(GL_CCW);
-//      glCullFace(GL_BACK);
-//      glEnable(GL_CULL_FACE);
+      glFrontFace(GL_CCW);
+      glCullFace(GL_BACK);
+      glEnable(GL_CULL_FACE);
 
       // detects the maximum anisotropic filtering samples
       glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_filtering_);
       max_filtering_ = (max_filtering_ > 8.0f)? 8.0f : max_filtering_;
       ramrod::gl::texture::set_max_filtering(max_filtering_);
 
-//      glPixelStorei(GL_PACK_ALIGNMENT, 1);
-//      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      glPixelStorei(GL_PACK_ALIGNMENT, 1);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
       gui::gui_manager::main_initialize();
 

@@ -17,7 +17,7 @@ namespace ramrod {
       info_path_(font_info_path),
       file_exists_{false},
       is_loaded_{false},
-      texture_(false, gui::texture::albedo),
+      texture_(false, gui::texture::albedo, false),
       characters_(),
       error_{true}
     {
@@ -112,8 +112,8 @@ namespace ramrod {
       }
 
       texture_.generate();
-      texture_.activate();
       texture_.bind();
+      texture_.parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
       texture_.allocate(image.width(), image.height(), image.data(), image.format());
       texture_.release();
 
