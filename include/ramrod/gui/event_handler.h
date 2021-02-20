@@ -5,6 +5,8 @@
 #include <SDL2/SDL_events.h>  // for SDL_Event, SDL_KeyboardEvent, SDL_Mouse...
 #include <SDL2/SDL_rect.h>    // for SDL_Rect
 
+#include "ramrod/gui/type_events.h"
+
 namespace ramrod {
   namespace gui {
     class window;
@@ -40,31 +42,48 @@ namespace ramrod {
       void wait_for_events(const int milliseconds);
 
     protected:
+      // Finger's events
+      virtual void finger_down_event(const gui::finger_event::finger &event);
+      virtual void finger_move_event(const gui::finger_event::finger &event);
+      virtual void finger_up_event(const gui::finger_event::finger &event);
+
+      // Keyboard's events
+      virtual void key_down_event(const gui::keyboard_event::key &event);
+      virtual void key_up_event(const gui::keyboard_event::key &event);
+
+      // Mouse's events
+      virtual void click_event(const gui::mouse_event::button &event);
+      virtual void mouse_down_event(const gui::mouse_event::button &event);
+      virtual void mouse_move_event(const gui::mouse_event::move &event);
+      virtual void mouse_up_event(const gui::mouse_event::button &event);
+      virtual void mouse_wheel_event(const gui::mouse_event::wheel &event);
+
+      // Window's events
+      virtual void close_event(const gui::window_event::window &event);
+      virtual void hide_event(const gui::window_event::window &event);
+      virtual void maximize_event(const gui::window_event::window &event);
+      virtual void minimize_event(const gui::window_event::window &event);
+      virtual void move_event(const gui::window_event::move &event);
+      virtual void resize_event(const gui::window_event::resize &event);
+      virtual void restore_event(const gui::window_event::resize &event);
+      virtual void show_event(const gui::window_event::window &event);
+      virtual void quit_event(const gui::window_event::window &event);
+
       virtual void drop_text_event(const SDL_DropEvent &event);
-      virtual void finger_event(const SDL_TouchFingerEvent &event);
-      virtual void key_event(const SDL_KeyboardEvent &event);
-      virtual void mouse_button_event(const SDL_MouseButtonEvent &event);
-      virtual void mouse_motion_event(const SDL_MouseMotionEvent &event);
-      virtual void mouse_wheel_event(const SDL_MouseWheelEvent &event);
       virtual void text_input_event(const SDL_TextInputEvent &event);
       virtual void text_edit_event(const SDL_TextEditingEvent &event);
-      virtual void window_event(const SDL_WindowEvent &event);
 
       SDL_Event event_;
       SDL_Rect display_properties_, window_properties_, initial_window_properties_;
       bool closing_, hidden_;
-      bool keyboard_active_;
-      bool mouse_active_, mouse_blocked_;
-      bool mouse_left_active_, mouse_middle_active_, mouse_right_active_;
       bool has_changed_;
 
     private:
       void analyze_event();
 
-      gui::window *window_;
+      void window_event(const SDL_WindowEvent &event);
 
-      int key_modifier_;
-      int previous_x_, previous_y_;
+      gui::window *window_;
     };
   } // namespace: gui
 } // namespace: ramrod

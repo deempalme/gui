@@ -2,12 +2,16 @@
 
 #include "SDL_keyboard.h"                          // for SDL_StartTextInput
 
+#include "ramrod/gui/gui_manager.h"
+#include "ramrod/gui/window.h"
+
 namespace ramrod {
   namespace gui {
-    input::input(const std::string &initial_text, const float width, const float height,
+    input::input(gui::window *window, const std::string &initial_text,
+                 const float width, const float height,
                  const float position_x, const float position_y,
-                 const std::size_t tab_index) :
-      gui::element(width, height, position_x, position_y, tab_index),
+                 const int z_index, const std::size_t tab_index) :
+      gui::element(window, width, height, position_x, position_y, z_index, tab_index),
       characters_(initial_text),
       character_position_(initial_text.size()),
       character_count_(character_position_),
@@ -17,6 +21,7 @@ namespace ramrod {
       text_buffer_(false),
       text_size_{1.0f}
     {
+      tab_index_ = window_->add_tab_index(this, tab_index);
     }
 
     void input::blur(){
@@ -91,6 +96,14 @@ namespace ramrod {
       return characters_.substr(selection_.start, selection_.count);
     }
 
+    std::size_t input::tab_index(){
+      return tab_index_;
+    }
+
+    void input::tab_index(const std::size_t new_tab_index){
+      tab_index_ = window_->modify_tab_index(this, new_tab_index);
+    }
+
     std::size_t input::total(){
       return character_count_;
     }
@@ -140,7 +153,8 @@ namespace ramrod {
 
     void input::paint(){
       if(!update_) return;
-      if(resize_) change_size();
+
+      update_ = true;
     }
   } // namespace: gui
 } // namespace: ramrod

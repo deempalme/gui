@@ -10,16 +10,18 @@
 
 namespace ramrod {
   namespace gui {
+    class window;
+
     class input_text : public gui::input
     {
     public:
-      explicit input_text(const std::string &initial_text = "",
+      explicit input_text(gui::window *window, const std::string &initial_text = "",
                           const float width = 150.0f, const float height = 35.0f,
                           const float position_x = 0, const float position_y = 0,
-                          const std::size_t tab_index = 0);
+                          const int z_index = 0, const std::size_t tab_index = 0);
 
     private:
-      void change_size();
+      void update_buffer();
 
       ramrod::gl::buffer background_buffer_;
     };

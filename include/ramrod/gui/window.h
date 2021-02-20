@@ -7,17 +7,30 @@
 
 #include "SDL_video.h"                 // for SDL_GLContext
 #include "ramrod/gui/event_handler.h"  // for event_handler
+#include "ramrod/gui/gui_manager.h"    // for gui_manager
 #include "ramrod/gui/types.h"          // for position, size
 
 namespace ramrod {
   namespace gui {
     class window :
-        public event_handler
+        public gui::event_handler, public gui::gui_manager
     {
     public:
       explicit window(const int width = 1024, const int height = 512,
                       const std::string &title = "Untitled");
       ~window();
+      /**
+       * @brief Changing the window background color
+       *
+       * @param red   Red color value from 0.0f to 1.0f
+       * @param green Green color value from 0.0f to 1.0f
+       * @param blue  Blue color value from 0.0f to 1.0f
+       * @param alpha Alpha value from 0.0f to 1.0f
+       *
+       * @return `false` if a value is negative
+       */
+      bool background_color(const float red = 0.0f, const float green = 0.0f,
+                            const float blue = 0.0f, const float alpha = 1.0f);
       /**
        * @brief Getting the battery status
        *
@@ -28,6 +41,10 @@ namespace ramrod {
        * @return Structure with power state, seconds left and percentage left
        */
       gui::battery::status battery_status();
+      /**
+       * @brief Centers the window on the display
+       */
+      void center();
       /**
        * @brief Indicates if there are changes that should be repainted
        * @return `true` if there are changes in openGL and the screen should be repainted
@@ -279,6 +296,8 @@ namespace ramrod {
        *
        */
       virtual void paint();
+
+      virtual void resize(const float width, const float height);
       /**
        * @brief Update function defined to be overriden
        *

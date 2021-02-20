@@ -15,7 +15,8 @@ namespace ramrod {
       width_{0},
       height_{0},
       components_{0},
-      desired_channels_{desired_channels}
+      desired_channels_{desired_channels},
+      loaded_{false}
     {
       if(gui::file_manager::check_path(image_path_)){
         stbi_set_flip_vertically_on_load(invert_y_axis ? 1 : 0);
@@ -24,6 +25,8 @@ namespace ramrod {
 
         if(image_data_ == nullptr)
           rr::error("There was an error when parsing image data");
+        else
+          loaded_ = true;
       }else
         rr::error("Image not found.");
     }
@@ -78,6 +81,10 @@ namespace ramrod {
         break;
       }
       return GL_NONE;
+    }
+
+    bool image_loader::loaded(){
+      return loaded_;
     }
 
     int image_loader::number_of_components(){

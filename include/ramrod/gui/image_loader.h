@@ -66,6 +66,13 @@ namespace ramrod {
        */
       GLenum internal_format();
       /**
+       * @brief Indicates if the image was found and properly loaded
+       *
+       * @return `false` if the file path does not exist or there was an error loading the image
+       *         use `failure_reason()` to see what was the problem
+       */
+      bool loaded();
+      /**
        * @brief Getting the number of components from this image
        *
        * They could be: 1 for RED, 2 for RG, 3 for RGB or 4 for RGBA
@@ -91,6 +98,7 @@ namespace ramrod {
       unsigned char *image_data_;
       int width_, height_, components_;
       int desired_channels_;
+      bool loaded_;
     };
   } // namespace: gui
 } // namespace: ramrod

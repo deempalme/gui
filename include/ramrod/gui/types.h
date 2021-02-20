@@ -1,12 +1,28 @@
 #ifndef RAMROD_VISION_SERVER_GUI_TYPES_H
 #define RAMROD_VISION_SERVER_GUI_TYPES_H
 
-#include <cstddef>
+#include <cstdint>
 
 #include "ramrod/gui/enumerators.h"
 
 namespace ramrod {
   namespace gui {
+    namespace battery {
+      typedef struct status {
+        gui::battery::power_state status;
+        // -1 if it cannot be determined or not running on battery
+        int seconds_left;
+        // -1 if it cannot be determined or not running on battery
+        int percentage_left;
+      } status;
+    } // namespace: battery
+
+    template<typename T>
+    struct point_2d {
+      T x;
+      T y;
+    };
+
     template<typename T>
     struct point_4d {
       T x;
@@ -14,6 +30,14 @@ namespace ramrod {
       T z;
       T w;
     };
+
+    typedef struct point_xy_id_uv {
+      float x;
+      float y;
+      float id;
+      float u;
+      float v;
+    } point_2d_uv;
 
     template<typename T>
     struct position {
@@ -60,15 +84,13 @@ namespace ramrod {
       } character;
     } // namespace: text
 
-    namespace battery {
-      typedef struct status {
-        gui::battery::power_state status;
-        // -1 if it cannot be determined or not running on battery
-        int seconds_left;
-        // -1 if it cannot be determined or not running on battery
-        int percentage_left;
-      } status;
-    } // namespace: battery
+    typedef struct texture_uv {
+      float u1;
+      float v1;
+      float u2;
+      float v2;
+    } texture_uv;
+
   } // namespace: gui
 } // namespace: ramrod
 

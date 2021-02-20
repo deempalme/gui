@@ -24,7 +24,8 @@
 namespace ramrod {
   namespace gui {
     window::window(const int width, const int height, const std::string &title) :
-      event_handler(this),
+      gui::event_handler(this),
+      gui::gui_manager(this),
       window_(nullptr),
       window_id_{0},
       context_(),
@@ -111,7 +112,6 @@ namespace ramrod {
       }
 
       SDL_GL_SetSwapInterval(1);
-      initialize();
 
       // detects the maximum anisotropic filtering samples
       glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_filtering_);
@@ -119,14 +119,21 @@ namespace ramrod {
       ramrod::gl::texture::set_max_filtering(max_filtering_);
 
       SDL_StopTextInput();
+
+      gui::gui_manager::initialize();
     }
 
     window::~window(){
-      rr::regular("Destroying window");
-
       if(context_) SDL_GL_DeleteContext(context_);
       if(window_) SDL_DestroyWindow(window_);
       SDL_Quit();
+    }
+
+    bool window::background_color(const float red, const float green,
+                                  const float blue, const float alpha){
+      if(red < 0.0f || green < 0.0f || blue < 0.0f || alpha < 0.0f) return false;
+      glClearColor(red, green, blue, alpha);
+      return true;
     }
 
     battery::status window::battery_status(){
@@ -134,6 +141,11 @@ namespace ramrod {
       status.status = static_cast<battery::power_state>(SDL_GetPowerInfo(&status.seconds_left,
                                                                          &status.percentage_left));
       return status;
+    }
+
+    void window::center(){
+      position((display_properties_.w - window_properties_.w) / 2,
+               (display_properties_.h - window_properties_.h) / 2);
     }
 
     bool window::changed(){
@@ -151,15 +163,20 @@ namespace ramrod {
 
     int window::execute(const bool infinite_loop, int sleep_time){
       if(!error_){
+        initialize();
         SDL_ShowWindow(window_);
+
         if(infinite_loop)
           while(!closing_){
 
             // Checks if the windows is visible and there are at least a change
+            // TODO: force change from video_yuyv
             if(!hidden_ && has_changed_){
               has_changed_ = false;
 
+              pre_paint();
               paint();
+              post_paint();
               SDL_GL_SwapWindow(window_);
             }
             update();
@@ -244,6 +261,7 @@ namespace ramrod {
     }
 
     void window::restart_viewport(){
+      resize(static_cast<float>(window_properties_.w), static_cast<float>(window_properties_.h));
       glViewport(0, 0, window_properties_.w, window_properties_.h);
     }
 
@@ -286,12 +304,15 @@ namespace ramrod {
     }
 
     gui::size<int> window::size(){
-      return gui::size<int>{ display_properties_.w, display_properties_.h };
+      return gui::size<int>{ window_properties_.w, window_properties_.h };
     }
 
     void window::size(const int width, const int height){
+      if(width <= 0 || height <= 0) return;
+
       SDL_SetWindowSize(window_, width, height);
-      SDL_RestoreWindow(window_);
+      window_properties_.w = width;
+      window_properties_.h = height;
 
       has_changed_ = true;
     }
@@ -342,9 +363,6 @@ namespace ramrod {
       //    glEnable(GL_MULTISAMPLE);
       // this line allows z-buffer to avoid rear objects to appear in front
       glDisable(GL_DEPTH_TEST);
-      // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
-      glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-      glDisable(GL_PROGRAM_POINT_SIZE);
       // these allow alpha transparency in the rendering
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -357,6 +375,11 @@ namespace ramrod {
     void window::paint(){
       //clearing the screen of old information
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      gui::gui_manager::paint();
+    }
+
+    void window::resize(const float width, const float height){
+      gui::gui_manager::resize(width, height);
     }
 
     void window::update(){}

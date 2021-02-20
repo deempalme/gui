@@ -22,17 +22,8 @@ namespace ramrod {
       initial_window_properties_(display_properties_),
       closing_{false},
       hidden_{true},
-      keyboard_active_{false},
-      mouse_active_{false},
-      mouse_blocked_{false},
-      mouse_left_active_{false},
-      mouse_middle_active_{false},
-      mouse_right_active_{false},
       has_changed_{true},
-      window_{parent},
-      key_modifier_{-1},
-      previous_x_{-1},
-      previous_y_{-1}
+      window_{parent}
     {
     }
 
@@ -56,6 +47,26 @@ namespace ramrod {
 
     // ::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
 
+    void event_handler::finger_down_event(const finger_event::finger &event){}
+    void event_handler::finger_move_event(const finger_event::finger &event){}
+    void event_handler::finger_up_event(const finger_event::finger &event){}
+    void event_handler::key_down_event(const keyboard_event::key &event){}
+    void event_handler::key_up_event(const keyboard_event::key &event){}
+    void event_handler::click_event(const mouse_event::button &event){}
+    void event_handler::mouse_down_event(const mouse_event::button &event){}
+    void event_handler::mouse_move_event(const mouse_event::move &event){}
+    void event_handler::mouse_up_event(const mouse_event::button &event){}
+    void event_handler::mouse_wheel_event(const mouse_event::wheel &event){}
+    void event_handler::close_event(const window_event::window &event){}
+    void event_handler::hide_event(const window_event::window &event){}
+    void event_handler::maximize_event(const window_event::window &event){}
+    void event_handler::minimize_event(const window_event::window &event){}
+    void event_handler::move_event(const window_event::move &event){}
+    void event_handler::resize_event(const window_event::resize &event){}
+    void event_handler::restore_event(const window_event::resize &event){}
+    void event_handler::show_event(const window_event::window &event){}
+    void event_handler::quit_event(const window_event::window &event){}
+
     void event_handler::drop_text_event(const SDL_DropEvent &event){
       if(event.type == SDL_DROPBEGIN){
       }else if(event.type == SDL_DROPCOMPLETE){
@@ -63,86 +74,6 @@ namespace ramrod {
         SDL_free(event.file);
       }else if(event.type == SDL_DROPTEXT){
         SDL_free(event.file);
-      }
-    }
-
-    void event_handler::finger_event(const SDL_TouchFingerEvent &event){
-    }
-
-    void event_handler::key_event(const SDL_KeyboardEvent &event){
-      const bool key_up{event.type == SDL_KEYUP};
-
-      key_modifier_ = event.keysym.mod & ramrod::gui::keyboard::not_none;
-
-      switch(event.keysym.sym){
-        case SDLK_DOWN:
-        break;
-        case SDLK_UP:
-        break;
-        case SDLK_LEFT:
-        break;
-        case SDLK_RIGHT:
-        break;
-        case SDLK_c:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
-            rr::attention("coping");
-          }
-        break;
-        case SDLK_v:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
-            rr::attention("pasting");
-          }
-        break;
-        case SDLK_x:
-          if(key_modifier_ & ramrod::gui::keyboard::ctrl && key_up){
-            rr::attention("cuting");
-          }
-        break;
-        default: break;
-      }
-    }
-
-    void event_handler::mouse_button_event(const SDL_MouseButtonEvent &event){
-      mouse_left_active_ = mouse_middle_active_ = mouse_right_active_ = false;
-
-      if(!(mouse_active_ = (event.state == SDL_PRESSED)))
-        //      core_->change_cursor(torero::gui::Cursor::Normal);
-
-        switch(event.button){
-          case SDL_BUTTON_LEFT:
-            mouse_left_active_ = true;
-
-            if(!mouse_blocked_ && mouse_active_){
-              //          core_->change_cursor(torero::gui::Cursor::ArrowALL);
-            }
-          break;
-          case SDL_BUTTON_MIDDLE:
-            mouse_middle_active_ = true;
-          break;
-          case SDL_BUTTON_RIGHT:
-            mouse_right_active_ = true;
-
-            if(!mouse_blocked_ && mouse_active_){
-              //          core_->change_cursor(torero::gui::Cursor::ArrowALL);
-            }
-          break;
-          default: break;
-        }
-    }
-
-    void event_handler::mouse_motion_event(const SDL_MouseMotionEvent &event){
-      if(mouse_active_ && !mouse_blocked_){
-        if(mouse_left_active_ || mouse_right_active_){
-          //        core_->camera().mouse_to_camera(event.xrel, event.yrel, mouse_left_active_);
-          has_changed_ = true;
-        }
-      }
-    }
-
-    void event_handler::mouse_wheel_event(const SDL_MouseWheelEvent &event){
-      if(!mouse_blocked_){
-        //      core_->camera().zoom(event.y > 0 ? torero::camera::Zoom::In : torero::camera::Zoom::Out);
-        has_changed_ = true;
       }
     }
 
@@ -154,43 +85,6 @@ namespace ramrod {
       rr::formatted("text edited: %s\n", rr::message::attention, event.text);
     }
 
-    void event_handler::window_event(const SDL_WindowEvent &event){
-      switch(event.event){
-        case SDL_WINDOWEVENT_CLOSE:
-          closing_ = true;
-        break;
-        case SDL_WINDOWEVENT_SHOWN:
-          hidden_ = false;
-        break;
-        case SDL_WINDOWEVENT_HIDDEN:
-          hidden_ = true;
-        break;
-        case SDL_WINDOWEVENT_MINIMIZED:
-          hidden_ = true;
-        break;
-        case SDL_WINDOWEVENT_MAXIMIZED:
-          hidden_ = false;
-        break;
-        case SDL_WINDOWEVENT_RESTORED:
-          hidden_ = false;
-        break;
-        case SDL_WINDOWEVENT_SIZE_CHANGED:
-          if(event.data1 > 0 && event.data2 > 0) hidden_ = false;
-
-          initial_window_properties_.w = window_properties_.w = event.data1;
-          initial_window_properties_.h = window_properties_.h = event.data2;
-
-          window_->restart_viewport();
-          force_change();
-        break;
-        case SDL_WINDOWEVENT_MOVED:
-          initial_window_properties_.x = window_properties_.x = event.data1;
-          initial_window_properties_.y = window_properties_.y = event.data2;
-        break;
-        default: break;
-      }
-    }
-
     // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
     void event_handler::analyze_event(){
@@ -199,31 +93,58 @@ namespace ramrod {
           closing_ = true;
         break;
         case SDL_MOUSEBUTTONDOWN:
-          mouse_button_event(event_.button);
+          mouse_down_event(gui::mouse_event::button{event_.button.timestamp, event_.button.windowID,
+                                                    event_.button.which, event_.button.button,
+                                                    event_.button.clicks, event_.button.x,
+                                                    event_.button.y});
         break;
         case SDL_MOUSEBUTTONUP:
-          mouse_button_event(event_.button);
+          mouse_up_event(gui::mouse_event::button{event_.button.timestamp, event_.button.windowID,
+                                                  event_.button.which, event_.button.button,
+                                                  event_.button.clicks, event_.button.x,
+                                                  event_.button.y});
         break;
         case SDL_MOUSEMOTION:
-          mouse_motion_event(event_.motion);
+          mouse_move_event(gui::mouse_event::move{event_.motion.timestamp, event_.motion.windowID,
+                                                  event_.motion.which, event_.motion.state,
+                                                  event_.motion.x, event_.motion.y,
+                                                  event_.motion.xrel, event_.motion.yrel});
         break;
         case SDL_MOUSEWHEEL:
-          mouse_wheel_event(event_.wheel);
+          mouse_wheel_event(gui::mouse_event::wheel{event_.wheel.timestamp, event_.wheel.windowID,
+                                                    event_.wheel.which, event_.wheel.x,
+                                                    event_.wheel.y, event_.wheel.direction});
         break;
         case SDL_KEYDOWN:
-          key_event(event_.key);
+          key_down_event(gui::keyboard_event::key{event_.key.timestamp, event_.key.windowID,
+                                                  event_.key.repeat, event_.key.keysym.scancode,
+                                                  event_.key.keysym.sym, event_.key.keysym.mod});
         break;
         case SDL_KEYUP:
-          key_event(event_.key);
+          key_up_event(gui::keyboard_event::key{event_.key.timestamp, event_.key.windowID,
+                                                event_.key.repeat, event_.key.keysym.scancode,
+                                                event_.key.keysym.sym, event_.key.keysym.mod});
         break;
         case SDL_FINGERDOWN:
-          finger_event(event_.tfinger);
+          finger_down_event(gui::finger_event::finger{event_.tfinger.timestamp, event_.tfinger.windowID,
+                                                      event_.tfinger.touchId, event_.tfinger.fingerId,
+                                                      event_.tfinger.x, event_.tfinger.y,
+                                                      event_.tfinger.dx, event_.tfinger.dy,
+                                                      event_.tfinger.pressure});
         break;
         case SDL_FINGERUP:
-          finger_event(event_.tfinger);
+          finger_up_event(gui::finger_event::finger{event_.tfinger.timestamp, event_.tfinger.windowID,
+                                                    event_.tfinger.touchId, event_.tfinger.fingerId,
+                                                    event_.tfinger.x, event_.tfinger.y,
+                                                    event_.tfinger.dx, event_.tfinger.dy,
+                                                    event_.tfinger.pressure});
         break;
         case SDL_FINGERMOTION:
-          finger_event(event_.tfinger);
+          finger_move_event(gui::finger_event::finger{event_.tfinger.timestamp, event_.tfinger.windowID,
+                                                      event_.tfinger.touchId, event_.tfinger.fingerId,
+                                                      event_.tfinger.x, event_.tfinger.y,
+                                                      event_.tfinger.dx, event_.tfinger.dy,
+                                                      event_.tfinger.pressure});
         break;
         case SDL_WINDOWEVENT:
           window_event(event_.window);
@@ -245,6 +166,54 @@ namespace ramrod {
         break;
         case SDL_DROPTEXT:
           drop_text_event(event_.drop);
+        break;
+        default: break;
+      }
+    }
+
+    void event_handler::window_event(const SDL_WindowEvent &event){
+      switch(event.event){
+        case SDL_WINDOWEVENT_CLOSE:
+          closing_ = true;
+          close_event(gui::window_event::window{event.timestamp, event.windowID});
+        break;
+        case SDL_WINDOWEVENT_SHOWN:
+          hidden_ = false;
+          show_event(gui::window_event::window{event.timestamp, event.windowID});
+        break;
+        case SDL_WINDOWEVENT_HIDDEN:
+          hidden_ = true;
+          hide_event(gui::window_event::window{event.timestamp, event.windowID});
+        break;
+        case SDL_WINDOWEVENT_MINIMIZED:
+          hidden_ = true;
+          minimize_event(gui::window_event::window{event.timestamp, event.windowID});
+        break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+          hidden_ = false;
+          maximize_event(gui::window_event::window{event.timestamp, event.windowID});
+        break;
+        case SDL_WINDOWEVENT_RESTORED:
+          hidden_ = false;
+          restore_event(gui::window_event::resize{event.timestamp, event.windowID,
+                                                  event.data1, event.data2});
+        break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+          if(event.data1 > 0 && event.data2 > 0) hidden_ = false;
+
+          initial_window_properties_.w = window_properties_.w = event.data1;
+          initial_window_properties_.h = window_properties_.h = event.data2;
+
+          window_->restart_viewport();
+          force_change();
+          resize_event(gui::window_event::resize{event.timestamp, event.windowID,
+                                                 event.data1, event.data2});
+        break;
+        case SDL_WINDOWEVENT_MOVED:
+          initial_window_properties_.x = window_properties_.x = event.data1;
+          initial_window_properties_.y = window_properties_.y = event.data2;
+          move_event(gui::window_event::move{event.timestamp, event.windowID,
+                                             event.data1, event.data2});
         break;
         default: break;
       }

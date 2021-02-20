@@ -1,56 +1,121 @@
 #include "ramrod/gui/gui_manager.h"
 
 #include "ramrod/console.h"
+#include "ramrod/gl/buffer.h"
+#include "ramrod/gl/frame_buffer.h"
 #include "ramrod/gl/shader.h"
 #include "ramrod/gl/texture.h"
+#include "ramrod/gl/uniform_buffer.h"
 #include "ramrod/gui/constants.h"
 #include "ramrod/gui/element.h"
 #include "ramrod/gui/enumerators.h"
 #include "ramrod/gui/font_loader.h"
 #include "ramrod/gui/image_loader.h"
+#include "ramrod/gui/input.h"
+
+#include "ramrod/gl/error.h"
 
 namespace ramrod {
   namespace gui {
-    gui_manager::gui_manager(gui::window *parent) :
-      parent_(parent),
-      sprite_(nullptr),
+    gui_manager::gui_manager(gui::window *window) :
+      window_(window),
       fonts_(),
       global_font_size_{16},
-      elements_(),
-      tab_list_(),
       text_shader_{nullptr},
       t_u_color_{0},
       t_u_size_{0},
-      image_shader_{nullptr}
+      sprite_shader_{nullptr},
+      s_u_parent_id_{0},
+      s_u_whole_{0},
+      ids_frame_{nullptr},
+      front_frame_{nullptr},
+      ids_texture_{nullptr},
+      front_texture_{nullptr},
+      scene_uniform_{nullptr},
+      unitary_buffer_{nullptr},
+      sprite_{nullptr},
+      sprite_height_{0},
+      sprite_width_{0},
+      using_elements_{false},
+      elements_(),
+      tab_list_(),
+      z_index_list_(),
+      last_element_id_{0},
+      last_tab_id_{0},
+      last_z_index_{0},
+      last_shader_id_{0},
+      last_texture_id_{0},
+      last_bound_texture_id_{0}
     {
-      // Loading the default fonts
-      gui::font_loader rubik_regular(gui::rubik_regular_image, gui::rubik_regular_info);
-      gui::font_loader rubik_medium(gui::rubik_medium_image, gui::rubik_medium_info);
-
-      fonts_[rubik_regular.font_name()] = rubik_regular;
-      fonts_[rubik_medium.font_name()] = rubik_medium;
     }
 
     gui_manager::~gui_manager(){
       if(sprite_) delete sprite_;
       if(text_shader_) delete text_shader_;
-      if(image_shader_) delete image_shader_;
+      if(sprite_shader_) delete sprite_shader_;
+      if(ids_frame_) delete ids_frame_;
+      if(front_frame_) delete front_frame_;
+      if(ids_texture_) delete ids_texture_;
+      if(front_texture_) delete front_texture_;
+      if(scene_uniform_) delete scene_uniform_;
+      if(unitary_buffer_) delete unitary_buffer_;
     }
 
-    std::size_t gui_manager::insert_new_element(element *new_element){
+    std::size_t gui_manager::add_element(gui::element *new_element){
+      if(new_element->id() != 0) return 0;
 
+      auto success = elements_.emplace(last_element_id_ + 1, new_element);
+      if(success.second){
+        using_elements_ = last_element_id_ >= 0;
+        return ++last_element_id_;
+      }
+      else
+        return 0;
     }
 
-    std::size_t gui_manager::create_new_tab_input(input *input){
+    std::size_t gui_manager::add_tab_index(gui::input *input, const std::size_t new_tab_index){
+      for(auto it = tab_list_.begin(); it != tab_list_.end(); ++it)
+        if(it->second->id() == input->id()){
+          tab_list_.erase(it);
+          break;
+        }
 
+      if(new_tab_index == 0){
+        tab_list_.emplace(++last_tab_id_, input);
+        return last_tab_id_;
+      }else{
+        tab_list_.emplace(new_tab_index, input);
+        return new_tab_index;
+      }
     }
 
-    bool gui_manager::remove_element(element *old_element){
+    int gui_manager::add_z_index(gui::element *element, const int new_z_index){
+      if(element->id() != 0)
+        for(auto it = z_index_list_.begin(); it != z_index_list_.end(); ++it)
+          if(it->second->id() == element->id()){
+            z_index_list_.erase(it);
+            break;
+          }
 
+      if(new_z_index == 0){
+        z_index_list_.emplace(++last_z_index_, element);
+        return last_z_index_;
+      }else{
+        z_index_list_.emplace(new_z_index, element);
+        return new_z_index;
+      }
     }
 
-    bool gui_manager::remove_tab_index(input *old_input){
+    void gui_manager::bind_shader(const GLuint shader_id){
+      if(last_shader_id_ == shader_id) return;
+      last_shader_id_ = shader_id;
+      glUseProgram(shader_id);
+    }
 
+    void gui_manager::bind_texture(const GLuint texture_id){
+      if(last_bound_texture_id_ == texture_id) return;
+      last_bound_texture_id_ = texture_id;
+      glBindTexture(GL_TEXTURE_2D, last_bound_texture_id_);
     }
 
     std::size_t gui_manager::last_element_id(){
@@ -61,48 +126,270 @@ namespace ramrod {
       return last_tab_id_;
     }
 
+    GLuint gui_manager::last_texture_id(){
+      return last_texture_id_;
+    }
+
+    int gui_manager::last_z_index(){
+      return last_z_index_;
+    }
+
+    std::size_t gui_manager::modify_tab_index(gui::input *input, const std::size_t new_tap_index){
+      if(input->tab_index() == new_tap_index) return new_tap_index;
+
+      for(auto it = tab_list_.begin(); it != tab_list_.end(); ++it){
+        if(it->second->id() == input->id()){
+          tab_list_.erase(it);
+          tab_list_.emplace(new_tap_index, input);
+          return new_tap_index;
+        }
+      }
+      return 0;
+    }
+
+    int gui_manager::modify_z_index(gui::element *element, const int new_z_index){
+      if(element->z_index() == new_z_index) return new_z_index;
+
+      for(auto it = z_index_list_.begin(); it != z_index_list_.end(); ++it){
+        if(it->second->id() == element->id()){
+          z_index_list_.erase(it);
+          z_index_list_.emplace(new_z_index, element);
+          return new_z_index;
+        }
+      }
+      return 0;
+    }
+
+    bool gui_manager::remove_element(gui::element *old_element){
+      for(auto iterator = elements_.begin(); iterator != elements_.end(); ++iterator){
+        if(iterator->second->id() == old_element->id()){
+          elements_.erase(iterator);
+          using_elements_ = elements_.size() > 0;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool gui_manager::remove_tab_index(gui::input *old_input){
+      for(auto iterator = tab_list_.begin(); iterator != tab_list_.end(); ++iterator){
+        if(iterator->second->id() == old_input->id()){
+          tab_list_.erase(iterator);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool gui_manager::remove_z_index(gui::element *old_element){
+      for(auto iterator = z_index_list_.begin(); iterator != z_index_list_.end(); ++iterator)
+        if(iterator->second->id() == old_element->id()){
+          z_index_list_.erase(iterator);
+          return true;
+        }
+      return false;
+    }
+
+    bool gui_manager::new_sprite(const std::string &sprite_path){
+      gui::image_loader new_image(sprite_path);
+
+      if(new_image.data()){
+        sprite_->bind();
+        sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
+                          new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+        sprite_->release();
+        sprite_->activate();
+        sprite_height_ = static_cast<float>(new_image.height());
+        sprite_width_ = static_cast<float>(new_image.width());
+        return true;
+      }
+      return false;
+    }
+
+    GLuint gui_manager::sprite_id(){
+      return sprite_->id();
+    }
+
+    float gui_manager::sprite_height(){
+      return sprite_height_;
+    }
+
+    float gui_manager::sprite_width(){
+      return sprite_width_;
+    }
+
+    GLuint gui_manager::sprite_shader(){
+      return sprite_shader_->id();
+    }
+
     // :::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
 
     void gui_manager::initialize(){
+      // Loading the default fonts
+      gui::font_loader rubik_regular(gui::rubik_regular_image, gui::rubik_regular_info);
+      gui::font_loader rubik_medium(gui::rubik_medium_image, gui::rubik_medium_info);
+
+      fonts_.emplace(rubik_regular.font_name(), rubik_regular);
+      fonts_.emplace(rubik_medium.font_name(), rubik_medium);
+
       if(!sprite_){
         gui::image_loader new_image(gui::default_sprite_path);
 
         if(new_image.data()){
-          sprite_ = new ramrod::gl::texture(true, gui::texture::sprite);
-          sprite_->activate();
+          sprite_ = new ramrod::gl::texture(true, gui::texture_unit::sprite);
           sprite_->bind();
+          sprite_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
           sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
                             new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+          sprite_->release();
+          sprite_->activate();
+          sprite_height_ = static_cast<float>(new_image.height());
+          sprite_width_ = static_cast<float>(new_image.width());
         }
       }
       if(!text_shader_){
-        text_shader_ = new ramrod::gl::shader(gui::text_shader_vert,
-                                              gui::text_shader_frag,
-                                              gui::text_shader_geom);
+//        text_shader_ = new ramrod::gl::shader(gui::text_shader_vert,
+//                                              gui::text_shader_frag,
+//                                              gui::text_shader_geom);
 
-        if(text_shader_->error()){
-          rr::error() << "gui_manager: " << text_shader_->error_log() << rr::endl;
+//        if(text_shader_->error()){
+//          rr::error() << "gui_manager text_shader: " << text_shader_->error_log() << rr::endl;
+//        }else{
+//          text_shader_->use();
+//          text_shader_->set_value(text_shader_->uniform_location("u_atlas"),
+//                                  gui::texture_unit::font_atlas);
+//          t_u_color_ = text_shader_->uniform_location("u_color");
+//          t_u_size_ = text_shader_->uniform_location("u_size");
+//        }
+      }
+      if(!sprite_shader_){
+        sprite_shader_ = new ramrod::gl::shader(gui::shader::sprite_shader_vert,
+                                                gui::shader::sprite_shader_frag,
+                                                gui::shader::sprite_shader_geom);
+        if(sprite_shader_->error()){
+          rr::error() << "gui_manager image_shader: " << sprite_shader_->error_log() << rr::endl;
         }else{
-          text_shader_->use();
-          text_shader_->set_value(text_shader_->uniform_location("u_atlas"),
-                                  gui::texture::font_atlas);
-          t_u_color_ = text_shader_->uniform_location("u_color");
-          t_u_size_ = text_shader_->uniform_location("u_size");
+          sprite_shader_->use();
+          sprite_shader_->set_value(sprite_shader_->uniform_location("u_image"),
+                                    gui::texture_unit::sprite);
+          s_u_parent_id_ = sprite_shader_->uniform_location("u_parent_id");
+          sprite_shader_->set_value(s_u_parent_id_, 0.0f);
+          s_u_whole_ = sprite_shader_->uniform_location("u_whole");
         }
       }
-      if(!image_shader_){
-        image_shader_ = new ramrod::gl::shader(gui::image_shader_vert, gui::image_shader_frag);
+      if(!ids_texture_){
+        ids_texture_ = new gl::texture(true, gui::texture_unit::background_ids, false);
+        ids_texture_->bind();
+        ids_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+        ids_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
+                               nullptr);
+        ids_texture_->release();
+        ids_texture_->activate();
+      }
+      if(!ids_frame_){
+        ids_frame_ = new gl::frame_buffer(true);
+        ids_frame_->bind();
+        ids_frame_->attach_2D(ids_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
+        ids_frame_->draw_buffer();
 
-        if(image_shader_->error()){
-          rr::error() << "gui_manager: " << image_shader_->error_log() << rr::endl;
-        }else{
-          image_shader_->use();
-          image_shader_->set_value(image_shader_->uniform_location("u_image"),
-                                   gui::texture::albedo);
-        }
+        if(ids_frame_->status() != GL_FRAMEBUFFER_COMPLETE)
+          rr::error() << "ids_frame_: " << ids_frame_->status_msg() << rr::endl;
+
+        ids_frame_->release();
+      }
+      if(!front_texture_){
+        front_texture_ = new gl::texture(true, gui::texture_unit::front_frame, false);
+        front_texture_->bind();
+        front_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+        front_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
+                               nullptr);
+        front_texture_->release();
+        front_texture_->activate();
+      }
+      if(!front_frame_){
+        front_frame_ = new gl::frame_buffer(true);
+        front_frame_->bind();
+        front_frame_->attach_2D(front_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::front);
+        front_frame_->draw_buffer();
+
+        if(front_frame_->status() != GL_FRAMEBUFFER_COMPLETE)
+          rr::error() << "front_frame_: " << front_frame_->status_msg() << rr::endl;
+
+        front_frame_->release();
+      }
+      if(!scene_uniform_){
+        scene_uniform_ = new gl::uniform_buffer(true);
+        scene_uniform_->bind();
+        scene_uniform_->allocate(nullptr, gui::byte_sizes::float_4D);
+        scene_uniform_->bind_base(gui::uniform_buffer::scene);
+        scene_uniform_->release();
+      }
+      if(!unitary_buffer_){
+        const float data[] = {
+          // Position  // Size      // Texture coordinates   // Id
+          0.0f, 0.0f,  1.0f, 1.0f,  0.0f, 0.0f, 1.0f, 1.0f,  0.0f
+        };
+
+        unitary_buffer_ = new gl::buffer(true);
+        unitary_buffer_->vertex_bind();
+        unitary_buffer_->generate_array();
+        unitary_buffer_->buffer_bind();
+
+        unitary_buffer_->allocate_array(data, sizeof(data));
+
+        unitary_buffer_->attributte_buffer(gui::attribute::position, gui::vector_size::vector_4D,
+                                           0, gui::byte_sizes::float_9D);
+        unitary_buffer_->enable(gui::attribute::position);
+
+        unitary_buffer_->attributte_buffer(gui::attribute::texture, gui::vector_size::vector_4D,
+                                           gui::byte_sizes::float_4D, gui::byte_sizes::float_9D);
+        unitary_buffer_->enable(gui::attribute::texture);
+
+        unitary_buffer_->attributte_buffer(gui::attribute::id, gui::vector_size::vector_1D,
+                                           gui::byte_sizes::float_8D, gui::byte_sizes::float_9D);
+        unitary_buffer_->enable(gui::attribute::id);
+        unitary_buffer_->vertex_release();
       }
     }
 
-    void gui_manager::paint(bool force){}
+    void gui_manager::paint(){
+      for(auto &element : z_index_list_){
+        element.second->paint();
+      }
+    }
+
+    void gui_manager::resize(const float width, const float height){
+      const float window_size[] = { width, height };
+      const float sprite_size[] = { sprite_width_, sprite_height_ };
+      scene_uniform_->bind();
+      scene_uniform_->allocate_section(window_size, sizeof(window_size));
+      scene_uniform_->allocate_section(sprite_size, sizeof(sprite_size), gui::byte_sizes::float_2D);
+      scene_uniform_->release();
+    }
+
+    void gui_manager::pre_paint(){
+      if(!using_elements_) return;
+
+//      ids_frame_->bind();
+//      front_frame_->bind();
+      sprite_->bind();
+      sprite_shader_->use();
+    }
+
+    void gui_manager::post_paint(){
+      if(!using_elements_) return;
+
+//      ids_frame_->release();
+//      front_frame_->release();
+
+//      front_texture_->bind();
+//      sprite_shader_->set_value(s_u_whole_, 1.0f);
+
+//      unitary_buffer_->vertex_bind();
+//      unitary_buffer_->draw(GL_POINTS, 0, 1);
+//      unitary_buffer_->vertex_release();
+
+//      sprite_shader_->set_value(s_u_whole_, 0.0f);
+    }
   } // namespace: gui
 } // namespace: ramrod

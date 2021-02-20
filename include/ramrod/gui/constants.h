@@ -10,7 +10,30 @@ namespace ramrod {
       constexpr int float_2D = float_1D * 2;
       constexpr int float_3D = float_1D * 3;
       constexpr int float_4D = float_1D * 4;
+      constexpr int float_5D = float_1D * 5;
+      constexpr int float_7D = float_1D * 7;
+      constexpr int float_8D = float_1D * 8;
+      constexpr int float_9D = float_1D * 9;
+      constexpr int float_11D = float_1D * 11;
     } // namespace: byte_sizes
+
+    namespace resolution {
+      constexpr unsigned int full_hd_width  = 1920;
+      constexpr unsigned int full_hd_height = 1080;
+      constexpr unsigned int full_hd = 1920 * 1080;
+    } // namespace: resolution
+
+    namespace shader {
+      constexpr char sprite_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.frag";
+      constexpr char sprite_shader_geom[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.geom";
+      constexpr char sprite_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.vert";
+
+      constexpr char text_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.frag";
+      constexpr char text_shader_geom[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.geom";
+      constexpr char text_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.vert";
+
+      constexpr char yuyv_frag_shader[] = RAMROD_GUI_DIR "/resources/shaders/yuyv.frag";
+    }
 
     namespace sprite {
       constexpr std::uint32_t width  = 512;
@@ -36,11 +59,6 @@ namespace ramrod {
     constexpr char rubik_medium_image[]  = RAMROD_GUI_DIR "/resources/fonts/rubik_medium.png";
     constexpr char rubik_medium_info[]   = RAMROD_GUI_DIR "/resources/fonts/rubik_medium.fnt";
     // OpenGL shaders
-    constexpr char text_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.frag";
-    constexpr char text_shader_geom[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.geom";
-    constexpr char text_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.vert";
-    constexpr char image_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/simple_image.frag";
-    constexpr char image_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_image.vert";
 
   } // namespace: gui
 } // namespace: ramrod

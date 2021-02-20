@@ -10,12 +10,14 @@
 
 namespace ramrod {
   namespace gui {
+    class window;
+
     class input : public gui::element
     {
     public:
-      input(const std::string &initial_text,
+      input(gui::window *window, const std::string &initial_text,
             const float width, const float height, const float position_x,
-            const float position_y, const std::size_t tab_index);
+            const float position_y, const int z_index, const std::size_t tab_index);
       /**
        * @brief Loses the focus for this element
        */
@@ -74,6 +76,18 @@ namespace ramrod {
        * @return A string containing all the selected text
        */
       std::string selection();
+      /**
+       * @brief Getting the current tab index of this element
+       *
+       * @return Tab index number
+       */
+      std::size_t tab_index();
+      /**
+       * @brief Setting a new tab index number for this element
+       *
+       * @param new_tab_index New tab index number
+       */
+      void tab_index(const std::size_t new_tab_index);
       /**
        * @brief Getting the total number of characters in this text input
        *

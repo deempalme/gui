@@ -17,7 +17,7 @@ namespace ramrod {
       info_path_(font_info_path),
       file_exists_{false},
       is_loaded_{false},
-      texture_(false, gui::texture::albedo),
+      texture_(false, gui::texture_unit::albedo),
       characters_(),
       error_{true}
     {

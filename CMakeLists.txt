@@ -13,6 +13,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
 
   #header files
   set(HPP_FILES
+    include/ramrod/gui/button.h
     include/ramrod/gui/constants.h
     include/ramrod/gui/enumerators.h
     include/ramrod/gui/element.h
@@ -20,23 +21,33 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     include/ramrod/gui/file_manager.h
     include/ramrod/gui/font_loader.h
     include/ramrod/gui/gui_manager.h
+    include/ramrod/gui/image.h
     include/ramrod/gui/image_loader.h
     include/ramrod/gui/input.h
     include/ramrod/gui/input_text.h
+    include/ramrod/gui/slider.h
     include/ramrod/gui/types.h
+    include/ramrod/gui/type_events.h
+    include/ramrod/gui/texture.h
+    include/ramrod/gui/video_yuyv.h
     include/ramrod/gui/window.h
   )
 
   #source files
   set(CPP_FILES
+    src/ramrod/gui/button.cpp
     src/ramrod/gui/element.cpp
     src/ramrod/gui/event_handler.cpp
     src/ramrod/gui/file_manager.cpp
     src/ramrod/gui/font_loader.cpp
     src/ramrod/gui/gui_manager.cpp
+    src/ramrod/gui/image.cpp
     src/ramrod/gui/image_loader.cpp
     src/ramrod/gui/input.cpp
     src/ramrod/gui/input_text.cpp
+    src/ramrod/gui/slider.cpp
+    src/ramrod/gui/texture.cpp
+    src/ramrod/gui/video_yuyv.cpp
     src/ramrod/gui/window.cpp
   )
 

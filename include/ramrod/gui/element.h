@@ -3,36 +3,30 @@
 
 #include <cstdint>
 
+#include "ramrod/gl/buffer.h"
 #include "ramrod/gui/types.h"  // for position, size, selection
 
 namespace ramrod {
   namespace gui {
+    class window;
+
     class element
     {
     public:
-      element(const float width, const float height,
+      element(gui::window *window, const float width, const float height,
               const float position_x, const float position_y,
-              const std::size_t tab_index);
+              const int z_index = 0, const std::size_t tab_index = 0);
+      /**
+       * @brief Hides this element
+       */
+      void hide();
       /**
        * @brief Getting this element's id
        *
        * @return Numeric identifier for this element
        */
       std::size_t id();
-      /**
-       * @brief Getting the current size of this text input
-       *
-       * @return The current text input's size
-       */
-      gui::size<float> size();
-      /**
-       * @brief Setting a new size for this text input
-       *
-       * @param width  Text input's width [in pixels]
-       * @param height Text input's height [in pixels]
-       * @return `false` if width or height are equal or less than zero
-       */
-      bool size(const float width, const float height);
+      virtual void paint();
       /**
        * @brief Getting the current position of this text input
        *
@@ -47,27 +41,50 @@ namespace ramrod {
        */
       void position(const float x, const float y);
       /**
-       * @brief Getting the current tab index of this element
-       *
-       * @return Tab index number
+       * @brief Shows this element
        */
-      std::size_t tab_index();
+      void show();
       /**
-       * @brief Setting a new tab index number for this element
+       * @brief Getting the current size of this text input
        *
-       * @param new_tab_index New tab index number
+       * @return The current text input's size
        */
-      void tab_index(const std::size_t new_tab_index);
+      gui::size<float> size();
+      /**
+       * @brief Setting a new size for this text input
+       *
+       * @param width  Text input's width [in pixels]
+       * @param height Text input's height [in pixels]
+       * @return `false` if width or height are equal or less than zero
+       */
+      bool size(const float width, const float height);
+
+      virtual GLuint texture_id();
+      void texture_id(const GLuint new_texture_id);
+
+      void texture_coordinates(const float bottom_left_x, const float bottom_left_y,
+                               const float top_right_x, const float top_right_y);
+
+      void z_index(const int new_z_index);
+      int z_index();
 
     protected:
-      virtual void change_size();
+      virtual void update_buffer();
 
+      gui::window *window_;
+
+      bool display_;
       std::size_t id_;
-      std::size_t tab_index_;
       gui::position<float> position_;
       gui::size<float> size_;
-      bool update_, resize_;
+      std::size_t tab_index_;
+      bool update_;
+      int z_index_;
 
+      GLuint texture_id_;
+      GLuint shader_id_;
+      gl::buffer buffer_;
+      gui::texture_uv uv_coordinates_;
     };
   } // namespace: gui
 } // namespace: ramrod

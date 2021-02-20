@@ -3,10 +3,14 @@
 
 #include <map>
 
+#include "ramrod/gl/shader.h"
+
 namespace ramrod {
   namespace gl {
-    class shader;
+    class buffer;
+    class frame_buffer;
     class texture;
+    class uniform_buffer;
   }
 
   namespace gui {
@@ -18,7 +22,7 @@ namespace ramrod {
     class gui_manager
     {
     public:
-      gui_manager(gui::window *parent);
+      gui_manager(gui::window *window);
       ~gui_manager();
       /**
        * @brief Inserting a new element into the painting queue
@@ -29,7 +33,7 @@ namespace ramrod {
        *
        * @return New element's ID
        */
-      std::size_t insert_new_element(gui::element *new_element);
+      std::size_t add_element(gui::element *new_element);
       /**
        * @brief Getting the new tab index for an gui::input element
        *
@@ -37,49 +41,93 @@ namespace ramrod {
        *
        * @return New input's tab index
        */
-      std::size_t create_new_tab_input(gui::input *input);
-      bool remove_element(gui::element *old_element);
-      bool remove_tab_index(gui::input *old_input);
+      std::size_t add_tab_index(gui::input *input, const std::size_t new_tab_index);
+      int add_z_index(gui::element *element, const int new_z_index);
 
+      void bind_shader(const GLuint shader_id);
+      void bind_texture(const GLuint texture_id);
       /**
        * @brief Getting the ID of the last added element
        *
        * @return Numeric ID or the last added element
        */
-      static std::size_t last_element_id();
+      std::size_t last_element_id();
       /**
        * @brief Getting the last added tab index
        *
        * @return The last added numeric tab index
        */
-      static std::size_t last_tab_id();
+      std::size_t last_tab_id();
+      /**
+       * @brief Getting the last added texture id or zero if there is none
+       *
+       * @return The last added numeric texture id
+       */
+      GLuint last_texture_id();
+      /**
+       * @brief Getting the last added z index
+       *
+       * @return The last added numeric z index
+       */
+      int last_z_index();
+      std::size_t modify_tab_index(gui::input *input, const std::size_t new_tap_index);
+      int modify_z_index(gui::element *element, const int new_z_index);
+
+      bool remove_element(gui::element *old_element);
+      bool remove_tab_index(gui::input *old_input);
+      bool remove_z_index(gui::element *old_element);
+
+      bool new_sprite(const std::string &sprite_path);
+      GLuint sprite_id();
+      float sprite_height();
+      float sprite_width();
+      GLuint sprite_shader();
 
     protected:
       virtual void initialize();
       /**
        * @brief Painting the scren
-       *
-       * @param force ´true´ to force a redraw of all GUI elements
        */
-      virtual void paint(bool force = true);
+      virtual void paint();
+
+      virtual void resize(const float width, const float height);
+
+      void pre_paint();
+      void post_paint();
 
     private:
-      gui::window *parent_;
-
-      gl::texture *sprite_;
+      gui::window *window_;
       // Font container: key is the font's name
       std::map<const std::string, gui::font_loader> fonts_;
       std::uint16_t global_font_size_;
 
-      std::map<const std::size_t, gui::element*> elements_;
-      std::multimap<const std::size_t, gui::input*> tab_list_;
-
       gl::shader *text_shader_;
       unsigned int t_u_color_, t_u_size_;
-      gl::shader *image_shader_;
 
-      inline static std::size_t last_element_id_ = 0;
-      inline static std::size_t last_tab_id_ = 0;
+      gl::shader *sprite_shader_;
+      unsigned int s_u_parent_id_, s_u_whole_;
+
+      gl::frame_buffer *ids_frame_, *front_frame_;
+      gl::texture *ids_texture_, *front_texture_;
+      gl::uniform_buffer *scene_uniform_;
+      gl::buffer *unitary_buffer_;
+
+      gl::texture *sprite_;
+      float sprite_height_;
+      float sprite_width_;
+
+      bool using_elements_;
+
+      std::map<const std::size_t, gui::element*> elements_;
+      std::multimap<const std::size_t, gui::input*> tab_list_;
+      std::multimap<const int, gui::element*> z_index_list_;
+
+      std::size_t last_element_id_;
+      std::size_t last_tab_id_;
+      int last_z_index_;
+      GLuint last_shader_id_;
+      GLuint last_texture_id_;
+      GLuint last_bound_texture_id_;
     };
   } // namespace: gui
 } // namespace: ramrod

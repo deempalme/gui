@@ -5,11 +5,11 @@
 
 namespace ramrod {
   namespace gui {
-    input_text::input_text(const std::string &initial_text,
+    input_text::input_text(gui::window *window, const std::string &initial_text,
                            const float width, const float height,
                            const float position_x, const float position_y,
-                           const std::size_t tab_index) :
-      gui::input(initial_text, width, height, position_x, position_y, tab_index),
+                           const int z_index, const std::size_t tab_index) :
+      gui::input(window, initial_text, width, height, position_x, position_y, z_index, tab_index),
       background_buffer_(true)
     {
       // TODO: calculate id_
@@ -27,13 +27,13 @@ namespace ramrod {
       background_buffer_.enable(attribute::texture);
       background_buffer_.vertex_release();
 
-      change_size();
+      input_text::update_buffer();
     }
 
     // ::::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
-    void input_text::change_size(){
-      gui::input::change_size();
+    void input_text::update_buffer(){
+      gui::input::update_buffer();
 
       const float u1 = static_cast<float>(gui::sprite::input_text_u_1)
                        / static_cast<float>(gui::sprite::width);
@@ -88,7 +88,7 @@ namespace ramrod {
 
       background_buffer_.vertex_bind();
       background_buffer_.buffer_bind();
-      background_buffer_.allocate_section_array(data, 0, sizeof(data));
+      background_buffer_.allocate_section_array(data, sizeof(data), 0);
       background_buffer_.vertex_release();
     }
   } // namespace: gui
