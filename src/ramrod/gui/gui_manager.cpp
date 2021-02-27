@@ -27,9 +27,9 @@ namespace ramrod {
       sprite_shader_{nullptr},
       s_u_parent_id_{0},
       s_u_whole_{0},
-      ids_frame_{nullptr},
-      front_frame_{nullptr},
-      ids_texture_{nullptr},
+      frame_shader_{nullptr},
+      frame_buffer_{nullptr},
+      back_texture_{nullptr},
       front_texture_{nullptr},
       scene_uniform_{nullptr},
       unitary_buffer_{nullptr},
@@ -45,7 +45,12 @@ namespace ramrod {
       last_z_index_{0},
       last_shader_id_{0},
       last_texture_id_{0},
-      last_bound_texture_id_{0}
+      last_bound_texture_id_{0},
+      ids_(),
+      width_{0},
+      height_{0},
+      width_factor_{0.0f},
+      height_factor_{0.0f}
     {
     }
 
@@ -53,9 +58,9 @@ namespace ramrod {
       if(sprite_) delete sprite_;
       if(text_shader_) delete text_shader_;
       if(sprite_shader_) delete sprite_shader_;
-      if(ids_frame_) delete ids_frame_;
-      if(front_frame_) delete front_frame_;
-      if(ids_texture_) delete ids_texture_;
+      if(frame_shader_) delete frame_shader_;
+      if(frame_buffer_) delete frame_buffer_;
+      if(back_texture_) delete back_texture_;
       if(front_texture_) delete front_texture_;
       if(scene_uniform_) delete scene_uniform_;
       if(unitary_buffer_) delete unitary_buffer_;
@@ -106,6 +111,35 @@ namespace ramrod {
       }
     }
 
+    const pixel_id &gui_manager::calculate_ids(int x, int y){
+      int data[4];
+      x *= width_factor_;
+      y *= height_factor_;
+
+      frame_buffer_->bind();
+      glReadBuffer(GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
+      glReadPixels(x, gui::resolution::full_hd_height - 1 - y, 1, 1, GL_RGBA_INTEGER,  GL_INT, data);
+      frame_buffer_->release();
+
+      if(data[1] == 0){
+        ids_.parent = 0;
+        ids_.object_id = 0;
+        ids_.object = nullptr;
+        ids_.object_x = 0;
+        ids_.object_y = 0;
+        return ids_;
+      }else if(static_cast<std::size_t>(data[1]) == ids_.object_id)
+        return ids_;
+
+      ids_.parent = static_cast<std::size_t>(data[0]);
+      ids_.object_id = static_cast<std::size_t>(data[1]);
+//      ids_.object = elements_[ids_.object_id];
+      ids_.object_x = static_cast<std::uint32_t>(data[2]);
+      ids_.object_y = static_cast<std::uint32_t>(data[3]);
+
+      return ids_;
+    }
+
     void gui_manager::bind_shader(const GLuint shader_id){
       if(last_shader_id_ == shader_id) return;
       last_shader_id_ = shader_id;
@@ -116,6 +150,10 @@ namespace ramrod {
       if(last_bound_texture_id_ == texture_id) return;
       last_bound_texture_id_ = texture_id;
       glBindTexture(GL_TEXTURE_2D, last_bound_texture_id_);
+    }
+
+    std::size_t gui_manager::hovered_element(){
+      return ids_.object_id;
     }
 
     std::size_t gui_manager::last_element_id(){
@@ -273,49 +311,40 @@ namespace ramrod {
           sprite_shader_->set_value(sprite_shader_->uniform_location("u_image"),
                                     gui::texture_unit::sprite);
           s_u_parent_id_ = sprite_shader_->uniform_location("u_parent_id");
-          sprite_shader_->set_value(s_u_parent_id_, 0.0f);
+          sprite_shader_->set_value(s_u_parent_id_, 0);
           s_u_whole_ = sprite_shader_->uniform_location("u_whole");
         }
       }
-      if(!ids_texture_){
-        ids_texture_ = new gl::texture(true, gui::texture_unit::background_ids, false);
-        ids_texture_->bind();
-        ids_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-        ids_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
-                               nullptr);
-        ids_texture_->release();
-        ids_texture_->activate();
-      }
-      if(!ids_frame_){
-        ids_frame_ = new gl::frame_buffer(true);
-        ids_frame_->bind();
-        ids_frame_->attach_2D(ids_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
-        ids_frame_->draw_buffer();
-
-        if(ids_frame_->status() != GL_FRAMEBUFFER_COMPLETE)
-          rr::error() << "ids_frame_: " << ids_frame_->status_msg() << rr::endl;
-
-        ids_frame_->release();
+      if(!back_texture_){
+        back_texture_ = new gl::texture(true, gui::texture_unit::background_ids, false);
+        back_texture_->bind();
+        back_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+        back_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
+                                nullptr, GL_RGBA_INTEGER, GL_INT, GL_RGBA32I);
+        back_texture_->release();
       }
       if(!front_texture_){
         front_texture_ = new gl::texture(true, gui::texture_unit::front_frame, false);
         front_texture_->bind();
         front_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
         front_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
-                               nullptr);
+                                 nullptr);
         front_texture_->release();
-        front_texture_->activate();
       }
-      if(!front_frame_){
-        front_frame_ = new gl::frame_buffer(true);
-        front_frame_->bind();
-        front_frame_->attach_2D(front_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::front);
-        front_frame_->draw_buffer();
+      if(!frame_buffer_){
+        frame_buffer_ = new gl::frame_buffer(true);
+        frame_buffer_->bind();
+        frame_buffer_->attach_2D(front_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::front);
+        frame_buffer_->attach_2D(back_texture_->id(), GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
 
-        if(front_frame_->status() != GL_FRAMEBUFFER_COMPLETE)
-          rr::error() << "front_frame_: " << front_frame_->status_msg() << rr::endl;
+        GLenum buffers[] = { GL_COLOR_ATTACHMENT0 + gui::framebuffer::front,
+                             GL_COLOR_ATTACHMENT0 + gui::framebuffer::back };
+        frame_buffer_->draw_buffers(2, buffers);
 
-        front_frame_->release();
+        if(frame_buffer_->status() != GL_FRAMEBUFFER_COMPLETE)
+          rr::error() << "frame_buffer_: " << frame_buffer_->status_msg() << rr::endl;
+
+        frame_buffer_->release();
       }
       if(!scene_uniform_){
         scene_uniform_ = new gl::uniform_buffer(true);
@@ -326,8 +355,13 @@ namespace ramrod {
       }
       if(!unitary_buffer_){
         const float data[] = {
-          // Position  // Size      // Texture coordinates   // Id
-          0.0f, 0.0f,  1.0f, 1.0f,  0.0f, 0.0f, 1.0f, 1.0f,  0.0f
+          // Position  // Texture coordinates
+          1.0f, 1.0f,  1.0f, 0.0f,
+          1.0f, 0.0f,  1.0f, 1.0f,
+          0.0f, 1.0f,  0.0f, 0.0f,
+          1.0f, 0.0f,  1.0f, 1.0f,
+          0.0f, 0.0f,  0.0f, 1.0f,
+          0.0f, 1.0f,  0.0f, 0.0f
         };
 
         unitary_buffer_ = new gl::buffer(true);
@@ -337,19 +371,38 @@ namespace ramrod {
 
         unitary_buffer_->allocate_array(data, sizeof(data));
 
-        unitary_buffer_->attributte_buffer(gui::attribute::position, gui::vector_size::vector_4D,
-                                           0, gui::byte_sizes::float_9D);
+        unitary_buffer_->attributte_buffer(gui::attribute::position, gui::vector_size::vector_2D,
+                                           0, gui::byte_sizes::float_4D);
         unitary_buffer_->enable(gui::attribute::position);
 
-        unitary_buffer_->attributte_buffer(gui::attribute::texture, gui::vector_size::vector_4D,
-                                           gui::byte_sizes::float_4D, gui::byte_sizes::float_9D);
+        unitary_buffer_->attributte_buffer(gui::attribute::texture, gui::vector_size::vector_2D,
+                                           gui::byte_sizes::float_2D, gui::byte_sizes::float_4D);
         unitary_buffer_->enable(gui::attribute::texture);
 
-        unitary_buffer_->attributte_buffer(gui::attribute::id, gui::vector_size::vector_1D,
-                                           gui::byte_sizes::float_8D, gui::byte_sizes::float_9D);
-        unitary_buffer_->enable(gui::attribute::id);
         unitary_buffer_->vertex_release();
       }
+      if(!frame_shader_){
+        frame_shader_ = new ramrod::gl::shader(gui::shader::frame_shader_vert,
+                                               gui::shader::frame_shader_frag);
+        if(frame_shader_->error()){
+          rr::error() << "gui_manager frame_shader: " << frame_shader_->error_log() << rr::endl;
+        }else{
+          frame_shader_->use();
+          frame_shader_->set_value(frame_shader_->uniform_location("u_image"),
+                                   gui::texture_unit::front_frame);
+        }
+      }
+    }
+
+    void gui_manager::mouse_down_event(const gui::mouse_event::button &event){
+    }
+
+    void gui_manager::mouse_move_event(const gui::mouse_event::move &event){
+      calculate_ids(event.x, event.y);
+    }
+
+    void gui_manager::mouse_up_event(const gui::mouse_event::button &event){
+
     }
 
     void gui_manager::paint(){
@@ -359,6 +412,11 @@ namespace ramrod {
     }
 
     void gui_manager::resize(const float width, const float height){
+      width_ = static_cast<int>(width);
+      height_ = static_cast<int>(height);
+      width_factor_ = gui::resolution::full_hd_width / width;
+      height_factor_ = gui::resolution::full_hd_height / height;
+
       const float window_size[] = { width, height };
       const float sprite_size[] = { sprite_width_, sprite_height_ };
       scene_uniform_->bind();
@@ -370,26 +428,29 @@ namespace ramrod {
     void gui_manager::pre_paint(){
       if(!using_elements_) return;
 
-//      ids_frame_->bind();
-//      front_frame_->bind();
+      frame_buffer_->bind();
       sprite_->bind();
       sprite_shader_->use();
+
+      glViewport(0, 0, gui::resolution::full_hd_width, gui::resolution::full_hd_height);
     }
 
     void gui_manager::post_paint(){
       if(!using_elements_) return;
 
-//      ids_frame_->release();
-//      front_frame_->release();
+      frame_buffer_->release();
 
-//      front_texture_->bind();
-//      sprite_shader_->set_value(s_u_whole_, 1.0f);
+      // TODO: fix width and height
+      glViewport(0, 0, 1440, 810);
 
-//      unitary_buffer_->vertex_bind();
-//      unitary_buffer_->draw(GL_POINTS, 0, 1);
-//      unitary_buffer_->vertex_release();
+      frame_shader_->use();
 
-//      sprite_shader_->set_value(s_u_whole_, 0.0f);
+      front_texture_->activate();
+      front_texture_->bind();
+
+      unitary_buffer_->vertex_bind();
+      unitary_buffer_->draw(GL_TRIANGLES, 0, 6);
+      unitary_buffer_->vertex_release();
     }
   } // namespace: gui
 } // namespace: ramrod

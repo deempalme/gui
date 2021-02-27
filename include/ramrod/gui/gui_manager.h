@@ -4,6 +4,8 @@
 #include <map>
 
 #include "ramrod/gl/shader.h"
+#include "ramrod/gui/type_events.h"
+#include "ramrod/gui/types.h"
 
 namespace ramrod {
   namespace gl {
@@ -44,8 +46,11 @@ namespace ramrod {
       std::size_t add_tab_index(gui::input *input, const std::size_t new_tab_index);
       int add_z_index(gui::element *element, const int new_z_index);
 
+      const gui::pixel_id &calculate_ids(int x, int y);
+
       void bind_shader(const GLuint shader_id);
       void bind_texture(const GLuint texture_id);
+      std::size_t hovered_element();
       /**
        * @brief Getting the ID of the last added element
        *
@@ -85,6 +90,10 @@ namespace ramrod {
 
     protected:
       virtual void initialize();
+      // Mouse's events
+      virtual void mouse_down_event(const gui::mouse_event::button &event);
+      virtual void mouse_move_event(const gui::mouse_event::move &event);
+      virtual void mouse_up_event(const gui::mouse_event::button &event);
       /**
        * @brief Painting the scren
        */
@@ -107,8 +116,10 @@ namespace ramrod {
       gl::shader *sprite_shader_;
       unsigned int s_u_parent_id_, s_u_whole_;
 
-      gl::frame_buffer *ids_frame_, *front_frame_;
-      gl::texture *ids_texture_, *front_texture_;
+      gl::shader *frame_shader_;
+
+      gl::frame_buffer *frame_buffer_;
+      gl::texture *back_texture_, *front_texture_;
       gl::uniform_buffer *scene_uniform_;
       gl::buffer *unitary_buffer_;
 
@@ -128,6 +139,10 @@ namespace ramrod {
       GLuint last_shader_id_;
       GLuint last_texture_id_;
       GLuint last_bound_texture_id_;
+
+      gui::pixel_id ids_;
+      int width_, height_;
+      float width_factor_, height_factor_;
     };
   } // namespace: gui
 } // namespace: ramrod

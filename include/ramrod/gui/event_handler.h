@@ -16,10 +16,6 @@ namespace ramrod {
     public:
       event_handler(gui::window *parent);
       /**
-       * @brief Forcing this window to redraw the screen
-       */
-      void force_change();
-      /**
        * @brief Use this function to poll for currently pending events.
        */
       void poll_events();
@@ -74,9 +70,6 @@ namespace ramrod {
       virtual void text_edit_event(const SDL_TextEditingEvent &event);
 
       SDL_Event event_;
-      SDL_Rect display_properties_, window_properties_, initial_window_properties_;
-      bool closing_, hidden_;
-      bool has_changed_;
 
     private:
       void analyze_event();

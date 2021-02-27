@@ -7,6 +7,8 @@
 
 namespace ramrod {
   namespace gui {
+    class element;
+
     namespace battery {
       typedef struct status {
         gui::battery::power_state status;
@@ -16,6 +18,14 @@ namespace ramrod {
         int percentage_left;
       } status;
     } // namespace: battery
+
+    typedef struct pixel_id {
+      std::size_t parent     = 0;
+      std::size_t object_id  = 0;
+      gui::element *object   = nullptr;
+      std::uint32_t object_x = 0;
+      std::uint32_t object_y = 0;
+    } pixel_id;
 
     template<typename T>
     struct point_2d {

@@ -4,7 +4,8 @@
 #include <cstdint>
 
 #include "ramrod/gl/buffer.h"
-#include "ramrod/gui/types.h"  // for position, size, selection
+#include "ramrod/gui/type_events.h"
+#include "ramrod/gui/types.h"
 
 namespace ramrod {
   namespace gui {
@@ -69,6 +70,7 @@ namespace ramrod {
       int z_index();
 
     protected:
+
       virtual void update_buffer();
 
       gui::window *window_;

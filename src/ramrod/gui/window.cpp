@@ -35,6 +35,12 @@ namespace ramrod {
       diagonal_dpi_{0.0f},
       horizontal_dpi_{0.0f},
       vertical_dpi_{0.0f},
+      closing_{false},
+      hidden_{false},
+      has_changed_{false},
+      display_properties_{ 0, 0, 1024, 512 },
+      window_properties_(display_properties_),
+      initial_window_properties_(display_properties_),
       error_{false},
       error_log_{0}
     {
@@ -170,7 +176,6 @@ namespace ramrod {
           while(!closing_){
 
             // Checks if the windows is visible and there are at least a change
-            // TODO: force change from video_yuyv
             if(!hidden_ && has_changed_){
               has_changed_ = false;
 
@@ -217,6 +222,10 @@ namespace ramrod {
         return error_log_;
     }
 
+    void window::force_change(){
+      has_changed_ = true;
+    }
+
     void window::full_screen(const bool make_full){
       if(make_full){
         SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN);
@@ -230,8 +239,8 @@ namespace ramrod {
       return SDL_GetTicks();
     }
 
-    uint32_t window::window_id(){
-      return window_id_;
+    void window::hide(){
+      hidden_ = true;
     }
 
     void window::maximize(const bool maximize){
@@ -303,6 +312,10 @@ namespace ramrod {
       SDL_GL_SwapWindow(window_);
     }
 
+    void window::show(){
+      hidden_ = false;
+    }
+
     gui::size<int> window::size(){
       return gui::size<int>{ window_properties_.w, window_properties_.h };
     }
@@ -330,6 +343,27 @@ namespace ramrod {
       SDL_SetWindowTitle(window_, title.c_str());
     }
 
+    void window::update_position(){
+      int x, y;
+      SDL_GetWindowPosition(window_, &x, &y);
+
+      if(window_properties_.x != x || window_properties_.y != y){
+        initial_window_properties_.x = window_properties_.x = x;
+        initial_window_properties_.y = window_properties_.y = y;
+      }
+    }
+
+    void window::update_size(){
+      int w, h;
+      SDL_GetWindowSize(window_, &w, &h);
+
+      initial_window_properties_.w = window_properties_.w = w;
+      initial_window_properties_.h = window_properties_.h = h;
+
+      restart_viewport();
+      has_changed_ = true;
+    }
+
     bool window::visibility(){
       return !hidden_;
     }
@@ -352,6 +386,10 @@ namespace ramrod {
       return true;
     }
 
+    uint32_t window::window_id(){
+      return window_id_;
+    }
+
     // ::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
     void window::initialize(){
@@ -370,6 +408,27 @@ namespace ramrod {
       glFrontFace(GL_CCW);
       glCullFace(GL_BACK);
       glEnable(GL_CULL_FACE);
+    }
+
+    void window::key_down_event(const gui::keyboard_event::key &event){
+    }
+
+    void window::key_up_event(const gui::keyboard_event::key &event){
+    }
+
+    void window::mouse_down_event(const gui::mouse_event::button &event){
+      gui_manager::mouse_down_event(event);
+    }
+
+    void window::mouse_move_event(const gui::mouse_event::move &event){
+      gui_manager::mouse_move_event(event);
+    }
+
+    void window::mouse_up_event(const gui::mouse_event::button &event){
+      gui_manager::mouse_up_event(event);
+    }
+
+    void window::mouse_wheel_event(const gui::mouse_event::wheel &event){
     }
 
     void window::paint(){

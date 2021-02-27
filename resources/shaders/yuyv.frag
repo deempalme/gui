@@ -1,15 +1,15 @@
 #version 420 core
 
-//uniform float u_parent_id;
+//uniform int u_parent_id;
 uniform sampler2D yuyv_image;
 uniform vec2 u_yuyv_size;
 
 in vec2 f_uv;
-in float f_id;
+flat in int f_id;
 in vec2 f_xy;
 
 layout(location = 0) out vec4 f_color;
-layout(location = 1) out vec4 f_background;
+layout(location = 1) out ivec4 f_background;
 
 void main() {
   const vec4 pixel = texture(yuyv_image, f_uv);
@@ -30,5 +30,5 @@ void main() {
   f_color.b = (1.164 * (y - 16.0) + 2.018 * (cb - 128.0)) / 255;
 
   f_color.a = 1.0;
-  f_background = vec4(/*u_parent_id*/0.0, f_id, f_xy.x, f_xy.y);
+  f_background = ivec4(/*u_parent_id*/0, f_id, int(f_xy.x * 100.0), int(f_xy.y * 100.0));
 }

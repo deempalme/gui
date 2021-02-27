@@ -110,6 +110,10 @@ namespace ramrod {
                   const bool full_screen = false, const bool maximized = false,
                   const bool infinite_loop = true, int sleep_time = 1000);
       /**
+       * @brief Forcing this window to redraw the screen
+       */
+      void force_change();
+      /**
        * @brief Making or exiting the full screen mode
        *
        * Makes the window full screen or resizes back the window to its defined width
@@ -123,11 +127,7 @@ namespace ramrod {
        * @return Number of milliseconds since start
        */
       std::uint32_t get_time();
-      /**
-       * @brief Getting this window's ID
-       * @return Id numeric value
-       */
-      std::uint32_t window_id();
+      void hide();
       /**
        * @brief Maximizes or restores the window
        * @param maximize `true` to maximize, `false` to restore its size
@@ -204,6 +204,7 @@ namespace ramrod {
        * @brief Swaps the front and back openGL's buffers
        */
       void screen_swap_buffers();
+      void show();
       /**
        * @brief Getting the window's size
        * @return A size structure with width and height
@@ -241,6 +242,8 @@ namespace ramrod {
        * @param title The UTF-8 encoded window title.
        */
       void title(const std::string &title);
+      void update_position();
+      void update_size();
       /**
        * @brief Checking window's visility
        *
@@ -266,6 +269,11 @@ namespace ramrod {
        * @return `false` if file was not found
        */
       bool window_icon(const std::string &icon_path);
+      /**
+       * @brief Getting this window's ID
+       * @return Id numeric value
+       */
+      std::uint32_t window_id();
 
     protected:
       /**
@@ -286,6 +294,14 @@ namespace ramrod {
        *
        */
       virtual void initialize();
+      // Keyboard's events
+      virtual void key_down_event(const gui::keyboard_event::key &event);
+      virtual void key_up_event(const gui::keyboard_event::key &event);
+      // Mouse's events
+      virtual void mouse_down_event(const gui::mouse_event::button &event);
+      virtual void mouse_move_event(const gui::mouse_event::move &event);
+      virtual void mouse_up_event(const gui::mouse_event::button &event);
+      virtual void mouse_wheel_event(const gui::mouse_event::wheel &event);
       /**
        * @brief OpenGL clearing and painting of the screen
        *
@@ -318,6 +334,12 @@ namespace ramrod {
 
       float max_filtering_;
       float diagonal_dpi_, horizontal_dpi_, vertical_dpi_;
+
+      bool closing_;
+      bool hidden_;
+      bool has_changed_;
+
+      SDL_Rect display_properties_, window_properties_, initial_window_properties_;
 
       bool error_;
       int error_log_;

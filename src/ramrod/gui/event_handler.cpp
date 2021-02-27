@@ -17,18 +17,8 @@ namespace ramrod {
   namespace gui {
     event_handler::event_handler(gui::window *parent) :
       event_(),
-      display_properties_{ 0, 0, 1024, 512 },
-      window_properties_(display_properties_),
-      initial_window_properties_(display_properties_),
-      closing_{false},
-      hidden_{true},
-      has_changed_{true},
       window_{parent}
     {
-    }
-
-    void event_handler::force_change(){
-      has_changed_ = true;
     }
 
     void event_handler::poll_events(){
@@ -90,7 +80,7 @@ namespace ramrod {
     void event_handler::analyze_event(){
       switch(event_.type){
         case SDL_QUIT:
-          closing_ = true;
+          window_->close();
         break;
         case SDL_MOUSEBUTTONDOWN:
           mouse_down_event(gui::mouse_event::button{event_.button.timestamp, event_.button.windowID,
@@ -174,44 +164,38 @@ namespace ramrod {
     void event_handler::window_event(const SDL_WindowEvent &event){
       switch(event.event){
         case SDL_WINDOWEVENT_CLOSE:
-          closing_ = true;
+          window_->close();
           close_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_SHOWN:
-          hidden_ = false;
+          window_->show();
           show_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_HIDDEN:
-          hidden_ = true;
+          window_->hide();
           hide_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_MINIMIZED:
-          hidden_ = true;
+          window_->hide();
           minimize_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_MAXIMIZED:
-          hidden_ = false;
+          window_->show();
           maximize_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_RESTORED:
-          hidden_ = false;
+          window_->show();
           restore_event(gui::window_event::resize{event.timestamp, event.windowID,
                                                   event.data1, event.data2});
         break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-          if(event.data1 > 0 && event.data2 > 0) hidden_ = false;
-
-          initial_window_properties_.w = window_properties_.w = event.data1;
-          initial_window_properties_.h = window_properties_.h = event.data2;
-
-          window_->restart_viewport();
-          force_change();
+          if(event.data1 > 0 && event.data2 > 0) window_->show();
+          window_->update_size();
           resize_event(gui::window_event::resize{event.timestamp, event.windowID,
                                                  event.data1, event.data2});
         break;
         case SDL_WINDOWEVENT_MOVED:
-          initial_window_properties_.x = window_properties_.x = event.data1;
-          initial_window_properties_.y = window_properties_.y = event.data2;
+          window_->update_position();
           move_event(gui::window_event::move{event.timestamp, event.windowID,
                                              event.data1, event.data2});
         break;

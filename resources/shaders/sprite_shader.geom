@@ -11,10 +11,10 @@ layout(std140, binding = 1) uniform u_scene {
 };
 
 in vec4 g_texture[];
-in float g_id[];
+in int  g_id[];
 
 out vec2 f_uv;
-out float f_id;
+flat out int f_id;
 out vec2 f_xy;
 
 void main(void){

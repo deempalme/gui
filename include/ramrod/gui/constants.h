@@ -24,6 +24,9 @@ namespace ramrod {
     } // namespace: resolution
 
     namespace shader {
+      constexpr char frame_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/frame_shader.frag";
+      constexpr char frame_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/frame_shader.vert";
+
       constexpr char sprite_shader_frag[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.frag";
       constexpr char sprite_shader_geom[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.geom";
       constexpr char sprite_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/sprite_shader.vert";
