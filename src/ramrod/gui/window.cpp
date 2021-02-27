@@ -136,7 +136,9 @@ namespace ramrod {
 
     int window::execute(const bool infinite_loop, std::uint32_t sleep_time){
       if(!error_){
+        initialize();
         SDL_ShowWindow(window_);
+
         if(infinite_loop)
           while(!closing_){
             if(sleep_time == 0 && initialized_){
@@ -159,9 +161,9 @@ namespace ramrod {
               SDL_GL_SwapWindow(window_);
             }
             update();
-
             initialized_ = true;
           }
+
         return EXIT_SUCCESS;
       }else
         return error_log_;
@@ -395,8 +397,6 @@ namespace ramrod {
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
       gui::gui_manager::main_initialize();
-
-      initialize();
     }
 
     bool window::load_icon(){
