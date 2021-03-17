@@ -20,7 +20,7 @@ namespace ramrod {
       texture_id_{0},
       shader_id_{0},
       buffer_(),
-      uv_coordinates_({ 0.0f, 0.0f, 1.0f, 1.0f })
+      uv_({ 0.0f, 0.0f, 1.0f, 1.0f })
     {
       z_index_ = window_->add_z_index(this, z_index);
       id_ = window_->add_element(this);
@@ -59,7 +59,8 @@ namespace ramrod {
       if(!display_) return;
 
       window_->bind_shader(shader_id_);
-      window_->bind_texture(texture_id_);
+      // TODO: Activate too?
+      window_->bind_texture(texture_id_, gui::texture_unit::sprite);
 
       buffer_.vertex_bind();
       buffer_.draw(GL_POINTS, 0, 1);
@@ -106,10 +107,10 @@ namespace ramrod {
 
     void element::texture_coordinates(const float bottom_left_x, const float bottom_left_y,
                                       const float top_right_x, const float top_right_y){
-      uv_coordinates_.u1 = bottom_left_x;
-      uv_coordinates_.v1 = bottom_left_y;
-      uv_coordinates_.u2 = top_right_x;
-      uv_coordinates_.v2 = top_right_y;
+      uv_.u1 = bottom_left_x;
+      uv_.v1 = bottom_left_y;
+      uv_.u2 = top_right_x;
+      uv_.v2 = top_right_y;
       update_buffer();
     }
 
@@ -130,8 +131,8 @@ namespace ramrod {
         // Size
         size_.width, size_.height,
         // Texture coordinates
-        // TODO: check if Y coordinates must be inverted
-        uv_coordinates_.u1, uv_coordinates_.v1, uv_coordinates_.u2, uv_coordinates_.v2,
+        // TODO: check if inverting the v coordinates is the best way
+        uv_.u1, uv_.v2, uv_.u2, uv_.v1,
         // Id
         static_cast<float>(id_)
       };

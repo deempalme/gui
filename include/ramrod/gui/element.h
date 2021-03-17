@@ -61,7 +61,7 @@ namespace ramrod {
       bool size(const float width, const float height);
 
       virtual GLuint texture_id();
-      void texture_id(const GLuint new_texture_id);
+      virtual void texture_id(const GLuint new_texture_id);
 
       void texture_coordinates(const float bottom_left_x, const float bottom_left_y,
                                const float top_right_x, const float top_right_y);
@@ -86,7 +86,7 @@ namespace ramrod {
       GLuint texture_id_;
       GLuint shader_id_;
       gl::buffer buffer_;
-      gui::texture_uv uv_coordinates_;
+      gui::texture_uv uv_;
     };
   } // namespace: gui
 } // namespace: ramrod
