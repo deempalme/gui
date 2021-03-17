@@ -14,7 +14,7 @@ namespace ramrod {
     class event_handler
     {
     public:
-      event_handler(gui::window *parent);
+      event_handler();
       /**
        * @brief Use this function to poll for currently pending events.
        */
@@ -69,14 +69,18 @@ namespace ramrod {
       virtual void text_input_event(const SDL_TextInputEvent &event);
       virtual void text_edit_event(const SDL_TextEditingEvent &event);
 
+      virtual void close();
+      virtual void hide();
+      virtual void show();
+      virtual void update_position();
+      virtual void update_size();
+
       SDL_Event event_;
 
     private:
       void analyze_event();
 
       void window_event(const SDL_WindowEvent &event);
-
-      gui::window *window_;
     };
   } // namespace: gui
 } // namespace: ramrod

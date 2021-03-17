@@ -113,6 +113,7 @@ namespace ramrod {
        * @brief Forcing this window to redraw the screen
        */
       void force_change();
+      bool full_screen();
       /**
        * @brief Making or exiting the full screen mode
        *
@@ -121,7 +122,7 @@ namespace ramrod {
        *
        * @param make_full `true` to make window full screen
        */
-      void full_screen(const bool make_full = true);
+      void full_screen(const bool make_full);
       /**
        * @brief Gets the time in milliseconds since the execution's starting
        * @return Number of milliseconds since start
@@ -338,6 +339,7 @@ namespace ramrod {
       bool closing_;
       bool hidden_;
       bool has_changed_;
+      bool full_screen_;
 
       SDL_Rect display_properties_, window_properties_, initial_window_properties_;
 

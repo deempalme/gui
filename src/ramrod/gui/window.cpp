@@ -24,7 +24,7 @@
 namespace ramrod {
   namespace gui {
     window::window(const int width, const int height, const std::string &title) :
-      gui::event_handler(this),
+      gui::event_handler(),
       gui::gui_manager(this),
       window_(nullptr),
       window_id_{0},
@@ -38,6 +38,7 @@ namespace ramrod {
       closing_{false},
       hidden_{false},
       has_changed_{false},
+      full_screen_{false},
       display_properties_{ 0, 0, 1024, 512 },
       window_properties_(display_properties_),
       initial_window_properties_(display_properties_),
@@ -179,9 +180,7 @@ namespace ramrod {
             if(!hidden_ && has_changed_){
               has_changed_ = false;
 
-              pre_paint();
               paint();
-              post_paint();
               SDL_GL_SwapWindow(window_);
             }
             update();
@@ -211,7 +210,7 @@ namespace ramrod {
         SDL_SetWindowSize(window_, width, height);
         SDL_SetWindowPosition(window_, x, y);
 
-        if(full_screen){
+        if((full_screen_ = full_screen)){
           SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN);
         }else if(maximized){
           SDL_MaximizeWindow(window_);
@@ -226,10 +225,16 @@ namespace ramrod {
       has_changed_ = true;
     }
 
+    bool window::full_screen(){
+      return full_screen_;
+    }
+
     void window::full_screen(const bool make_full){
       if(make_full){
+        full_screen_ = true;
         SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN);
       }else{
+        full_screen_ = false;
         SDL_SetWindowFullscreen(window_, 0);
         SDL_RestoreWindow(window_);
       }
@@ -411,9 +416,11 @@ namespace ramrod {
     }
 
     void window::key_down_event(const gui::keyboard_event::key &event){
+      gui_manager::key_down_event(event);
     }
 
     void window::key_up_event(const gui::keyboard_event::key &event){
+      gui_manager::key_up_event(event);
     }
 
     void window::mouse_down_event(const gui::mouse_event::button &event){

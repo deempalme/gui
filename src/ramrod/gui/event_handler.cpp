@@ -15,9 +15,8 @@
 
 namespace ramrod {
   namespace gui {
-    event_handler::event_handler(gui::window *parent) :
-      event_(),
-      window_{parent}
+    event_handler::event_handler() :
+      event_()
     {
     }
 
@@ -37,25 +36,25 @@ namespace ramrod {
 
     // ::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
 
-    void event_handler::finger_down_event(const finger_event::finger &event){}
-    void event_handler::finger_move_event(const finger_event::finger &event){}
-    void event_handler::finger_up_event(const finger_event::finger &event){}
-    void event_handler::key_down_event(const keyboard_event::key &event){}
-    void event_handler::key_up_event(const keyboard_event::key &event){}
-    void event_handler::click_event(const mouse_event::button &event){}
-    void event_handler::mouse_down_event(const mouse_event::button &event){}
-    void event_handler::mouse_move_event(const mouse_event::move &event){}
-    void event_handler::mouse_up_event(const mouse_event::button &event){}
-    void event_handler::mouse_wheel_event(const mouse_event::wheel &event){}
-    void event_handler::close_event(const window_event::window &event){}
-    void event_handler::hide_event(const window_event::window &event){}
-    void event_handler::maximize_event(const window_event::window &event){}
-    void event_handler::minimize_event(const window_event::window &event){}
-    void event_handler::move_event(const window_event::move &event){}
-    void event_handler::resize_event(const window_event::resize &event){}
-    void event_handler::restore_event(const window_event::resize &event){}
-    void event_handler::show_event(const window_event::window &event){}
-    void event_handler::quit_event(const window_event::window &event){}
+    void event_handler::finger_down_event(const finger_event::finger &/*event*/){}
+    void event_handler::finger_move_event(const finger_event::finger &/*event*/){}
+    void event_handler::finger_up_event(const finger_event::finger &/*event*/){}
+    void event_handler::key_down_event(const keyboard_event::key &/*event*/){}
+    void event_handler::key_up_event(const keyboard_event::key &/*event*/){}
+    void event_handler::click_event(const mouse_event::button &/*event*/){}
+    void event_handler::mouse_down_event(const mouse_event::button &/*event*/){}
+    void event_handler::mouse_move_event(const mouse_event::move &/*event*/){}
+    void event_handler::mouse_up_event(const mouse_event::button &/*event*/){}
+    void event_handler::mouse_wheel_event(const mouse_event::wheel &/*event*/){}
+    void event_handler::close_event(const window_event::window &/*event*/){}
+    void event_handler::hide_event(const window_event::window &/*event*/){}
+    void event_handler::maximize_event(const window_event::window &/*event*/){}
+    void event_handler::minimize_event(const window_event::window &/*event*/){}
+    void event_handler::move_event(const window_event::move &/*event*/){}
+    void event_handler::resize_event(const window_event::resize &/*event*/){}
+    void event_handler::restore_event(const window_event::resize &/*event*/){}
+    void event_handler::show_event(const window_event::window &/*event*/){}
+    void event_handler::quit_event(const window_event::window &/*event*/){}
 
     void event_handler::drop_text_event(const SDL_DropEvent &event){
       if(event.type == SDL_DROPBEGIN){
@@ -75,12 +74,22 @@ namespace ramrod {
       rr::formatted("text edited: %s\n", rr::message::attention, event.text);
     }
 
+    void event_handler::close(){}
+
+    void event_handler::hide(){}
+
+    void event_handler::show(){}
+
+    void event_handler::update_position(){}
+
+    void event_handler::update_size(){}
+
     // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
     void event_handler::analyze_event(){
       switch(event_.type){
         case SDL_QUIT:
-          window_->close();
+          close();
         break;
         case SDL_MOUSEBUTTONDOWN:
           mouse_down_event(gui::mouse_event::button{event_.button.timestamp, event_.button.windowID,
@@ -164,38 +173,38 @@ namespace ramrod {
     void event_handler::window_event(const SDL_WindowEvent &event){
       switch(event.event){
         case SDL_WINDOWEVENT_CLOSE:
-          window_->close();
+          close();
           close_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_SHOWN:
-          window_->show();
+          show();
           show_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_HIDDEN:
-          window_->hide();
+          hide();
           hide_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_MINIMIZED:
-          window_->hide();
+          hide();
           minimize_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_MAXIMIZED:
-          window_->show();
+          show();
           maximize_event(gui::window_event::window{event.timestamp, event.windowID});
         break;
         case SDL_WINDOWEVENT_RESTORED:
-          window_->show();
+          show();
           restore_event(gui::window_event::resize{event.timestamp, event.windowID,
                                                   event.data1, event.data2});
         break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
-          if(event.data1 > 0 && event.data2 > 0) window_->show();
-          window_->update_size();
+          if(event.data1 > 0 && event.data2 > 0) show();
+          update_size();
           resize_event(gui::window_event::resize{event.timestamp, event.windowID,
                                                  event.data1, event.data2});
         break;
         case SDL_WINDOWEVENT_MOVED:
-          window_->update_position();
+          update_position();
           move_event(gui::window_event::move{event.timestamp, event.windowID,
                                              event.data1, event.data2});
         break;
