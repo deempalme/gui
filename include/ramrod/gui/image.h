@@ -10,8 +10,9 @@ namespace ramrod {
     class image : public gui::element
     {
     public:
-      image(gui::window *window, const float width = 128, const float height = 128,
-            const float position_x = 0, const float position_y = 0);
+      image(gui::window *window, const float width = 128.0f, const float height = 128.0f,
+            const float position_x = 0, const float position_y = 0,
+            const int z_index = 0, const std::size_t tab_index = 0);
 
     protected:
 

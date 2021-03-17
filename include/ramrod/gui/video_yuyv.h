@@ -33,7 +33,7 @@ namespace ramrod {
 
       GLuint texture_id();
 
-      bool upload_data(void *data, std::size_t buffer_size, const std::size_t offset = 0);
+      bool upload_data(const void *data, std::size_t buffer_size, const std::size_t offset = 0);
 
     private:
       float resolution_x_;

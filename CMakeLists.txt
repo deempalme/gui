@@ -23,6 +23,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     include/ramrod/gui/gui_manager.h
     include/ramrod/gui/image.h
     include/ramrod/gui/image_loader.h
+    include/ramrod/gui/image_stream.h
     include/ramrod/gui/input.h
     include/ramrod/gui/input_text.h
     include/ramrod/gui/slider.h
@@ -43,6 +44,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     src/ramrod/gui/gui_manager.cpp
     src/ramrod/gui/image.cpp
     src/ramrod/gui/image_loader.cpp
+    src/ramrod/gui/image_stream.cpp
     src/ramrod/gui/input.cpp
     src/ramrod/gui/input_text.cpp
     src/ramrod/gui/slider.cpp

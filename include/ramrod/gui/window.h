@@ -313,7 +313,7 @@ namespace ramrod {
        */
       virtual void paint();
 
-      virtual void resize(const float width, const float height);
+      virtual void resize(const int width, const int height);
       /**
        * @brief Update function defined to be overriden
        *

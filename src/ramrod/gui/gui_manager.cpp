@@ -146,9 +146,10 @@ namespace ramrod {
       glUseProgram(shader_id);
     }
 
-    void gui_manager::bind_texture(const GLuint texture_id){
+    void gui_manager::bind_texture(const GLuint texture_id, const GLuint texture_active){
       if(last_bound_texture_id_ == texture_id) return;
       last_bound_texture_id_ = texture_id;
+      glActiveTexture(GL_TEXTURE0 + texture_active);
       glBindTexture(GL_TEXTURE_2D, last_bound_texture_id_);
     }
 
@@ -229,7 +230,7 @@ namespace ramrod {
     }
 
     bool gui_manager::new_sprite(const std::string &sprite_path){
-      gui::image_loader new_image(sprite_path);
+      gui::image_loader new_image(sprite_path, false);
 
       if(new_image.data()){
         sprite_->bind();
@@ -271,7 +272,7 @@ namespace ramrod {
       fonts_.emplace(rubik_medium.font_name(), rubik_medium);
 
       if(!sprite_){
-        gui::image_loader new_image(gui::default_sprite_path);
+        gui::image_loader new_image(gui::default_sprite_path, false);
 
         if(new_image.data()){
           sprite_ = new ramrod::gl::texture(true, gui::texture_unit::sprite);
@@ -411,19 +412,25 @@ namespace ramrod {
       }
     }
 
-    void gui_manager::resize(const float width, const float height){
-      width_ = static_cast<int>(width);
-      height_ = static_cast<int>(height);
-      width_factor_ = gui::resolution::full_hd_width / width;
-      height_factor_ = gui::resolution::full_hd_height / height;
+    void gui_manager::resize(const int width, const int height){
+      if(width_ == width && height_ == height) return;
 
-      const float window_size[] = { width, height };
+      width_ = width;
+      height_ = height;
+
+      const float window_size[] = { static_cast<float>(width), static_cast<float>(height) };
       const float sprite_size[] = { sprite_width_, sprite_height_ };
+
+      width_factor_ = gui::resolution::full_hd_width / window_size[0];
+      height_factor_ = gui::resolution::full_hd_height / window_size[1];
+
       scene_uniform_->bind();
       scene_uniform_->allocate_section(window_size, sizeof(window_size));
       scene_uniform_->allocate_section(sprite_size, sizeof(sprite_size), gui::byte_sizes::float_2D);
       scene_uniform_->release();
     }
+
+    void gui_manager::restart_viewport(){}
 
     void gui_manager::pre_paint(){
       if(!using_elements_) return;
@@ -440,8 +447,7 @@ namespace ramrod {
 
       frame_buffer_->release();
 
-      // TODO: fix width and height
-      glViewport(0, 0, 1440, 810);
+      restart_viewport();
 
       frame_shader_->use();
 

@@ -119,17 +119,17 @@ namespace ramrod {
       return yuyv_->id();
     }
 
-    bool video_yuyv::upload_data(void *data, std::size_t buffer_size,
+    bool video_yuyv::upload_data(const void *data, std::size_t buffer_size,
                                  const std::size_t offset){
       // Frames get written after dequeuing the buffer
       read_pbo_ = (read_pbo_ + 1) % 2;
       const std::size_t write_pbo = (read_pbo_ + 1) % 2;
 
-      bool error{false};
+      bool ok{true};
 
       if((buffer_size + offset) > static_cast<std::size_t>(half_resolution_)){
         buffer_size = half_resolution_ - offset;
-        error = true;
+        ok = false;
       }
 
       pbo_[read_pbo_].bind();
@@ -142,12 +142,14 @@ namespace ramrod {
       if(ptr){
         std::memcpy(ptr + offset, data, buffer_size);
         pbo_[write_pbo].unmap();
-      }
+      }else
+        ok = false;
+
       pbo_[write_pbo].release();
 
-      window_->force_change();
+      if(ok) window_->force_change();
 
-      return error;
+      return ok;
     }
   } // namespace: gui
 } // namespace: ramrod

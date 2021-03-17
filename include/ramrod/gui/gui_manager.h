@@ -49,7 +49,7 @@ namespace ramrod {
       const gui::pixel_id &calculate_ids(int x, int y);
 
       void bind_shader(const GLuint shader_id);
-      void bind_texture(const GLuint texture_id);
+      void bind_texture(const GLuint texture_id, const GLuint texture_active);
       std::size_t hovered_element();
       /**
        * @brief Getting the ID of the last added element
@@ -99,7 +99,8 @@ namespace ramrod {
        */
       virtual void paint();
 
-      virtual void resize(const float width, const float height);
+      virtual void resize(const int width, const int height);
+      virtual void restart_viewport();
 
       void pre_paint();
       void post_paint();

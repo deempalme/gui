@@ -270,7 +270,7 @@ namespace ramrod {
     }
 
     void window::restart_viewport(){
-      resize(static_cast<float>(window_properties_.w), static_cast<float>(window_properties_.h));
+      resize(window_properties_.w, window_properties_.h);
       glViewport(0, 0, window_properties_.w, window_properties_.h);
     }
 
@@ -437,7 +437,7 @@ namespace ramrod {
       gui::gui_manager::paint();
     }
 
-    void window::resize(const float width, const float height){
+    void window::resize(const int width, const int height){
       gui::gui_manager::resize(width, height);
     }
 

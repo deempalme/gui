@@ -74,7 +74,8 @@ namespace ramrod {
         font_atlas     = 2,
         front_frame    = 3,
         background_ids = 4,
-        video          = 5
+        video          = 5,
+        image_write    = 6
       };
     } // namespace: texture
 
