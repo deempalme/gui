@@ -2,6 +2,7 @@
 
 #include "ramrod/console.h"
 #include "ramrod/gl/buffer.h"
+#include "ramrod/gl/error.h"
 #include "ramrod/gl/frame_buffer.h"
 #include "ramrod/gl/shader.h"
 #include "ramrod/gl/texture.h"
@@ -12,8 +13,7 @@
 #include "ramrod/gui/font_loader.h"
 #include "ramrod/gui/image_loader.h"
 #include "ramrod/gui/input.h"
-
-#include "ramrod/gl/error.h"
+#include "ramrod/gui/window.h"
 
 namespace ramrod {
   namespace gui {
@@ -394,21 +394,33 @@ namespace ramrod {
       }
     }
 
-    void gui_manager::mouse_down_event(const gui::mouse_event::button &event){
+    void gui_manager::key_down_event(const keyboard_event::key &event){
+      if(event.scancode == SDL_SCANCODE_F11){
+        window_->full_screen(!window_->full_screen());
+      }
+//      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
+//                    event.scancode, event.sym, event.mod);
     }
+
+    void gui_manager::key_up_event(const keyboard_event::key &/*event*/){
+//      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
+//                    event.scancode, event.sym, event.mod);
+    }
+
+    void gui_manager::mouse_down_event(const gui::mouse_event::button &/*event*/){}
 
     void gui_manager::mouse_move_event(const gui::mouse_event::move &event){
       calculate_ids(event.x, event.y);
     }
 
-    void gui_manager::mouse_up_event(const gui::mouse_event::button &event){
-
-    }
+    void gui_manager::mouse_up_event(const gui::mouse_event::button &/*event*/){}
 
     void gui_manager::paint(){
+      pre_paint();
       for(auto &element : z_index_list_){
         element.second->paint();
       }
+      post_paint();
     }
 
     void gui_manager::resize(const float width, const float height){
@@ -423,6 +435,10 @@ namespace ramrod {
       scene_uniform_->allocate_section(window_size, sizeof(window_size));
       scene_uniform_->allocate_section(sprite_size, sizeof(sprite_size), gui::byte_sizes::float_2D);
       scene_uniform_->release();
+    }
+
+    void gui_manager::restart_viewport(){
+      glViewport(0, 0, (int)width_, (int)height_);
     }
 
     void gui_manager::pre_paint(){
@@ -440,8 +456,7 @@ namespace ramrod {
 
       frame_buffer_->release();
 
-      // TODO: fix width and height
-      glViewport(0, 0, 1440, 810);
+      restart_viewport();
 
       frame_shader_->use();
 

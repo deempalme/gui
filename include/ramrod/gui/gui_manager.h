@@ -90,6 +90,11 @@ namespace ramrod {
 
     protected:
       virtual void initialize();
+
+      // Keyboard's events
+      virtual void key_down_event(const gui::keyboard_event::key &event);
+      virtual void key_up_event(const gui::keyboard_event::key &event);
+
       // Mouse's events
       virtual void mouse_down_event(const gui::mouse_event::button &event);
       virtual void mouse_move_event(const gui::mouse_event::move &event);
@@ -100,6 +105,8 @@ namespace ramrod {
       virtual void paint();
 
       virtual void resize(const float width, const float height);
+
+      virtual void restart_viewport();
 
       void pre_paint();
       void post_paint();
