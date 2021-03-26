@@ -8,7 +8,9 @@ namespace ramrod {
         position = 0,
         texture  = 1,
         size     = 2,
-        id       = 2
+        color    = 2,
+        offset   = 3,
+        id       = 4
       };
     } // namespace: attribute
 

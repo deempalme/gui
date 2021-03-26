@@ -20,7 +20,9 @@ namespace ramrod {
       texture_id_{0},
       shader_id_{0},
       buffer_(),
-      uv_({ 0.0f, 0.0f, 1.0f, 1.0f })
+      uv_({ 0.0f, 0.0f, 1.0f, 1.0f }),
+      color_({ 1.0f, 1.0f, 1.0f, 1.0f }),
+      offset_({ 0.0f, 0.0f })
     {
       z_index_ = window_->add_z_index(this, z_index);
       id_ = window_->add_element(this);
@@ -31,24 +33,45 @@ namespace ramrod {
       buffer_.generate_array();
       buffer_.buffer_bind();
 
-      buffer_.allocate_array(nullptr, sizeof(float) * 9);
+      buffer_.allocate_array(nullptr, gui::byte_sizes::float_15D);
 
       buffer_.attributte_buffer(gui::attribute::position, gui::vector_size::vector_4D,
-                                0, gui::byte_sizes::float_9D);
+                                0, gui::byte_sizes::float_15D);
       buffer_.enable(gui::attribute::position);
       buffer_.attributte_buffer(gui::attribute::texture, gui::vector_size::vector_4D,
-                                gui::byte_sizes::float_4D, gui::byte_sizes::float_9D);
+                                gui::byte_sizes::float_4D, gui::byte_sizes::float_15D);
       buffer_.enable(gui::attribute::texture);
+      buffer_.attributte_buffer(gui::attribute::color, gui::vector_size::vector_4D,
+                                gui::byte_sizes::float_8D, gui::byte_sizes::float_15D);
+      buffer_.enable(gui::attribute::color);
+      buffer_.attributte_buffer(gui::attribute::offset, gui::vector_size::vector_2D,
+                                gui::byte_sizes::float_12D, gui::byte_sizes::float_15D);
+      buffer_.enable(gui::attribute::offset);
       buffer_.attributte_buffer(gui::attribute::id, gui::vector_size::vector_1D,
-                                gui::byte_sizes::float_8D, gui::byte_sizes::float_9D);
+                                gui::byte_sizes::float_14D, gui::byte_sizes::float_15D);
       buffer_.enable(gui::attribute::id);
       buffer_.vertex_release();
 
       element::update_buffer();
     }
 
+    void element::color(const float r, const float g, const float b, const float a){
+      float max{r};
+      if(g > max) max = g;
+      if(b > max) max = b;
+      if(a > max) max = a;
+      color_.r = r / max;
+      color_.g = g / max;
+      color_.b = b / max;
+      color_.a = a / max;
+      update_ = true;
+      update_buffer();
+      window_->force_change();
+    }
+
     void element::hide(){
       display_ = false;
+      window_->force_change();
     }
 
     std::size_t element::id(){
@@ -76,10 +99,20 @@ namespace ramrod {
       position_.y = y;
       update_ = true;
       update_buffer();
+      window_->force_change();
+    }
+
+    void element::offset(const float x, const float y){
+      offset_.x = x;
+      offset_.y = y;
+      update_ = true;
+      update_buffer();
+      window_->force_change();
     }
 
     void element::show(){
       display_ = true;
+      window_->force_change();
     }
 
     gui::size<float> element::size(){
@@ -94,6 +127,7 @@ namespace ramrod {
       size_.width = width;
       size_.height = height;
       update_buffer();
+      window_->force_change();
       return update_ =true;
     }
 
@@ -103,6 +137,7 @@ namespace ramrod {
 
     void element::texture_id(const GLuint new_texture_id){
       texture_id_ = new_texture_id;
+      window_->force_change();
     }
 
     void element::texture_coordinates(const float bottom_left_x, const float bottom_left_y,
@@ -112,10 +147,12 @@ namespace ramrod {
       uv_.u2 = top_right_x;
       uv_.v2 = top_right_y;
       update_buffer();
+      window_->force_change();
     }
 
     void element::z_index(const int new_z_index){
       z_index_ = window_->modify_z_index(this, new_z_index);
+      window_->force_change();
     }
 
     int element::z_index(){
@@ -131,8 +168,11 @@ namespace ramrod {
         // Size
         size_.width, size_.height,
         // Texture coordinates
-        // TODO: check if inverting the v coordinates is the best way
         uv_.u1, uv_.v2, uv_.u2, uv_.v1,
+        // Color
+        color_.r, color_.g, color_.b, color_.a,
+        // Offset
+        offset_.x, offset_.y,
         // Id
         static_cast<float>(id_)
       };

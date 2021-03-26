@@ -101,6 +101,14 @@ namespace ramrod {
       float v2;
     } texture_uv;
 
+
+    typedef struct color {
+      float r;
+      float g;
+      float b;
+      float a;
+    } color;
+
   } // namespace: gui
 } // namespace: ramrod
 

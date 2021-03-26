@@ -18,6 +18,18 @@ namespace ramrod {
               const float position_x, const float position_y,
               const int z_index = 0, const std::size_t tab_index = 0);
       /**
+       * @brief Setting the color of this element
+       *
+       * This will automatically normalize the input arguments starting from 0 to the
+       * maximum input value
+       *
+       * @param r Red channel value
+       * @param g Green channel value
+       * @param b Blue channel value
+       * @param a Alpha channel value
+       */
+      void color(const float r, const float g, const float b, const float a);
+      /**
        * @brief Hides this element
        */
       void hide();
@@ -41,6 +53,16 @@ namespace ramrod {
        * @param y Vertical position from the top-left corner [in pixels]
        */
       void position(const float x, const float y);
+      /**
+       * @brief Setting the element offset
+       *
+       * You could choose between pixels with values above 1.0f or percentage with
+       * values from 0.0f to 1.0f (relative to the element size)
+       *
+       * @param x Horizontal offset from the top-left corner of this element
+       * @param y Vertical offset from the top-left corner of this element
+       */
+      void offset(const float x, const float y);
       /**
        * @brief Shows this element
        */
@@ -87,6 +109,8 @@ namespace ramrod {
       GLuint shader_id_;
       gl::buffer buffer_;
       gui::texture_uv uv_;
+      gui::color color_;
+      gui::position<float> offset_;
     };
   } // namespace: gui
 } // namespace: ramrod

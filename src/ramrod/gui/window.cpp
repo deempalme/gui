@@ -232,9 +232,11 @@ namespace ramrod {
     void window::full_screen(const bool make_full){
       if(make_full){
         full_screen_ = true;
+        has_changed_ = true;
         SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN);
       }else{
         full_screen_ = false;
+        has_changed_ = true;
         SDL_SetWindowFullscreen(window_, 0);
         SDL_RestoreWindow(window_);
       }

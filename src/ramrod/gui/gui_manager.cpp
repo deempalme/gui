@@ -454,6 +454,7 @@ namespace ramrod {
       sprite_shader_->use();
 
       glViewport(0, 0, gui::resolution::full_hd_width, gui::resolution::full_hd_height);
+      window_->screen_clear();
     }
 
     void gui_manager::post_paint(){

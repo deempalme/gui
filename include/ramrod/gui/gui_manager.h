@@ -107,8 +107,6 @@ namespace ramrod {
       virtual void resize(const int width, const int height);
       virtual void restart_viewport();
 
-      virtual void restart_viewport();
-
       void pre_paint();
       void post_paint();
 

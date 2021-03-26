@@ -15,6 +15,9 @@ namespace ramrod {
       constexpr int float_8D = float_1D * 8;
       constexpr int float_9D = float_1D * 9;
       constexpr int float_11D = float_1D * 11;
+      constexpr int float_12D = float_1D * 12;
+      constexpr int float_14D = float_1D * 14;
+      constexpr int float_15D = float_1D * 15;
     } // namespace: byte_sizes
 
     namespace resolution {

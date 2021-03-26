@@ -11,25 +11,42 @@ layout(std140, binding = 1) uniform u_scene {
 };
 
 in vec4 g_texture[];
+in vec4 g_color[];
+in vec2 g_offset[];
 in int  g_id[];
 
 out vec2 f_uv;
-flat out int f_id;
+out vec4 f_color;
 out vec2 f_xy;
+flat out int f_id;
 
 void main(void){
   vec2 position = gl_in[0].gl_Position.xy;
   vec2 size = gl_in[0].gl_Position.zw;
+  vec2 off = g_offset[0];
+
+  if(abs(off.x) <= 1.0) off.x *= (size.x <= 1.0) ? size.x * u_window_size.x : size.x;
+  if(abs(off.y) <= 1.0) off.y *= (size.y <= 1.0) ? size.y * u_window_size.y : size.y;
+
+  off.x /= u_window_size.x;
+  off.y /= u_window_size.y;
 
   if(size.x > 1.0) size.x /= u_window_size.x;
   if(size.y > 1.0) size.y /= u_window_size.y;
 
   // Calculating horizontal position
-  if(position.x < 0.0) position.x = (u_window_size.x + position.x) / u_window_size.x - size.x;
-  else if(position.x > 1.0) position.x /= u_window_size.x;
+  if(position.x < 0.0)
+    position.x = (u_window_size.x + position.x) / u_window_size.x - size.x;
+  else if(position.x > 1.0)
+    position.x = position.x / u_window_size.x;
   // Calculating vertical position
-  if(position.y < 0.0) position.y = (u_window_size.y + position.y) / u_window_size.y - size.y;
-  else if(position.y > 1.0) position.y /= u_window_size.y;
+  if(position.y < 0.0)
+    position.y = (u_window_size.y + position.y) / u_window_size.y - size.y;
+  else if(position.y > 1.0)
+    position.y = position.y / u_window_size.y;
+
+  position.x += off.x;
+  position.y += off.y;
 
   // Calculating if texture's uv are using percentual values
   const vec4 uv = vec4(
@@ -40,6 +57,7 @@ void main(void){
   );
 
   f_id = g_id[0];
+  f_color = g_color[0];
 
   // bottom right corner
   f_uv = uv.zy;
