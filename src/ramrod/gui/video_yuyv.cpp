@@ -23,7 +23,8 @@ namespace ramrod {
       half_resolution_{half_resolution_x_ * i_resolution_y_ * 4},
       pbo_{static_cast<gl::pixel_buffer*>(std::malloc(sizeof(gl::pixel_buffer) * 2))},
       read_pbo_{0},
-      yuyv_{new gl::texture(false, gui::texture_unit::video, false)}
+      yuyv_{new gl::texture(false, gui::texture_unit::video, false)},
+      inverted_{false}
     {
       if(video_yuyv::elements_++ == 0){
         video_yuyv::shader_ = new gl::shader();
@@ -58,8 +59,6 @@ namespace ramrod {
       pbo_[1].bind();
       pbo_[1].allocate_data(nullptr, half_resolution_, GL_STREAM_DRAW);
       pbo_[1].release();
-
-      texture_coordinates(0, 1.0f, 1.0f, 0.0f);
     }
 
     video_yuyv::~video_yuyv(){
@@ -68,11 +67,19 @@ namespace ramrod {
       std::free(pbo_);
     }
 
+    void video_yuyv::invert_y_axis(){
+      if((inverted_ = !inverted_)){
+        texture_coordinates(0, 1.0f, 1.0f, 0.0f);
+      }else{
+        texture_coordinates(0, 0.0f, 1.0f, 1.0f);
+      }
+    }
+
     void video_yuyv::paint(){
       if(!display_) return;
 
       window_->bind_shader(shader_id_);
-      video_yuyv::shader_->set_value(video_yuyv::u_yuyv_size_, resolution_x_, resolution_y_);
+      video_yuyv::shader_->set_value(video_yuyv::u_yuyv_size_, resolution_x_);
 
       yuyv_->activate();
       yuyv_->bind();

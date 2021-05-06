@@ -35,7 +35,7 @@ namespace ramrod {
        *
        * @param timeout Waiting time in milliseconds.
        */
-      void wait_for_events(const int milliseconds);
+      void wait_for_events(const std::uint32_t milliseconds);
 
     protected:
       // Finger's events

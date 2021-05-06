@@ -11,6 +11,7 @@ namespace ramrod {
   namespace gl {
     class buffer;
     class frame_buffer;
+    class pixel_buffer;
     class texture;
     class uniform_buffer;
   }
@@ -24,7 +25,7 @@ namespace ramrod {
     class gui_manager
     {
     public:
-      gui_manager(gui::window *window);
+      gui_manager(gui::window *window, const int width, const int height);
       ~gui_manager();
       /**
        * @brief Inserting a new element into the painting queue
@@ -46,11 +47,19 @@ namespace ramrod {
       std::size_t add_tab_index(gui::input *input, const std::size_t new_tab_index);
       int add_z_index(gui::element *element, const int new_z_index);
 
-      const gui::pixel_id &calculate_ids(int x, int y);
-
       void bind_shader(const GLuint shader_id);
       void bind_texture(const GLuint texture_id, const GLuint texture_active);
+
+      const gui::pixel_id &calculate_ids(int x, int y);
+
+      void exclusive_paint();
+      void framebuffer_bind();
+      void framebuffer_paint();
+      void framebuffer_release();
+
       std::size_t hovered_element();
+      std::uint32_t hovered_element_x();
+      std::uint32_t hovered_element_y();
       /**
        * @brief Getting the ID of the last added element
        *
@@ -75,18 +84,30 @@ namespace ramrod {
        * @return The last added numeric z index
        */
       int last_z_index();
+
+      bool map_initialize();
+      const char *map();
+
       std::size_t modify_tab_index(gui::input *input, const std::size_t new_tap_index);
       int modify_z_index(gui::element *element, const int new_z_index);
+
+      bool new_sprite(const std::string &sprite_path);
 
       bool remove_element(gui::element *old_element);
       bool remove_tab_index(gui::input *old_input);
       bool remove_z_index(gui::element *old_element);
 
-      bool new_sprite(const std::string &sprite_path);
+      void resolution(const int x, const int y);
+
+      int resolution_x();
+      int resolution_y();
+
       GLuint sprite_id();
       float sprite_height();
       float sprite_width();
       GLuint sprite_shader();
+
+      bool unmap();
 
     protected:
       virtual void initialize();
@@ -99,6 +120,9 @@ namespace ramrod {
       virtual void mouse_down_event(const gui::mouse_event::button &event);
       virtual void mouse_move_event(const gui::mouse_event::move &event);
       virtual void mouse_up_event(const gui::mouse_event::button &event);
+
+      // Window's events
+      virtual void resize_event(const ramrod::gui::window_event::resize &event);
       /**
        * @brief Painting the scren
        */
@@ -111,6 +135,8 @@ namespace ramrod {
       void post_paint();
 
     private:
+      void update_size();
+
       gui::window *window_;
       // Font container: key is the font's name
       std::map<const std::string, gui::font_loader> fonts_;
@@ -149,6 +175,15 @@ namespace ramrod {
       gui::pixel_id ids_;
       int width_, height_;
       float width_factor_, height_factor_;
+
+      bool custom_resolution_;
+      int resolution_x_, resolution_y_;
+
+      // This pixel buffer object allow us to make an ultra fast reading from the back frame
+      ramrod::gl::pixel_buffer *pbo_;
+      std::size_t read_pbo_;
+      std::size_t next_pbo_;
+      const char *last_pbo_;
     };
   } // namespace: gui
 } // namespace: ramrod

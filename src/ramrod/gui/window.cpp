@@ -13,6 +13,7 @@
 #include "SDL_surface.h"                            // for SDL_FreeSurface
 #include "SDL_timer.h"                              // for SDL_Delay, SDL_Ge...
 #include "glad/glad.h"                              // for glDisable, gladLo...
+#include "ramrod/console.h"                    // for endl
 #include "ramrod/console/endl.h"                    // for endl
 #include "ramrod/console/error.h"                   // for error_stream, error
 #include "ramrod/console/regular.h"                 // for regular, regular_...
@@ -25,7 +26,7 @@ namespace ramrod {
   namespace gui {
     window::window(const int width, const int height, const std::string &title) :
       gui::event_handler(),
-      gui::gui_manager(this),
+      gui::gui_manager(this, width, height),
       window_(nullptr),
       window_id_{0},
       context_(),
@@ -168,13 +169,17 @@ namespace ramrod {
       return closing_;
     }
 
-    int window::execute(const bool infinite_loop, int sleep_time){
+    int window::execute(const std::uint32_t sleep_time, const bool infinite_loop){
       if(!error_){
         initialize();
         SDL_ShowWindow(window_);
+        std::uint32_t clock{0};
+        std::uint32_t spent_time{0};
 
         if(infinite_loop)
           while(!closing_){
+            // Check for events
+            poll_events();
 
             // Checks if the windows is visible and there are at least a change
             if(!hidden_ && has_changed_){
@@ -185,9 +190,15 @@ namespace ramrod {
             }
             update();
 
-            if(sleep_time > 0)
-              wait_for_events(sleep_time);
-            else
+            if(sleep_time > 0){
+              // Makes sure it only sleeps the remaining time after all the
+              // time spent painting, updating, and processing events
+              spent_time = get_time() - clock;
+              clock = get_time();
+              // If we spent more time than what we should the we skip sleeping
+              if(spent_time < sleep_time)
+                sleep(sleep_time - spent_time);
+            }else
               wait_for_events();
           }
         return EXIT_SUCCESS;
@@ -195,9 +206,9 @@ namespace ramrod {
         return error_log_;
     }
 
-    int window::execute(int width, int height, const std::string title,
-                        const bool full_screen, const bool maximized,
-                        const bool infinite_loop, int sleep_time){
+    int window::execute(const std::uint32_t sleep_time, int width, int height,
+                        const std::string title, const bool full_screen,
+                        const bool maximized, const bool infinite_loop){
       if(!error_){
         SDL_SetWindowTitle(window_, title.c_str());
 
@@ -277,7 +288,7 @@ namespace ramrod {
     }
 
     void window::restart_viewport(){
-      resize(window_properties_.w, window_properties_.h);
+//      resize(window_properties_.w, window_properties_.h);
       glViewport(0, 0, window_properties_.w, window_properties_.h);
     }
 
@@ -328,16 +339,19 @@ namespace ramrod {
     }
 
     void window::size(const int width, const int height){
-      if(width <= 0 || height <= 0) return;
+      if(width <= 0 || height <= 0
+         || (width == window_properties_.w && height == window_properties_.h)) return;
 
       SDL_SetWindowSize(window_, width, height);
       window_properties_.w = width;
       window_properties_.h = height;
 
+      gui::gui_manager::resize(width, height);
+
       has_changed_ = true;
     }
 
-    void window::sleep(const uint32_t milliseconds){
+    void window::sleep(const std::uint32_t milliseconds){
       SDL_Delay(milliseconds);
     }
 
@@ -437,7 +451,11 @@ namespace ramrod {
       gui_manager::mouse_up_event(event);
     }
 
-    void window::mouse_wheel_event(const gui::mouse_event::wheel &event){
+    void window::mouse_wheel_event(const gui::mouse_event::wheel &/*event*/){
+    }
+
+    void window::resize_event(const window_event::resize &event){
+      gui_manager::resize_event(event);
     }
 
     void window::paint(){

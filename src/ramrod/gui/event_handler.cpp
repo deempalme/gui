@@ -29,7 +29,7 @@ namespace ramrod {
       poll_events();
     }
 
-    void event_handler::wait_for_events(const int milliseconds){
+    void event_handler::wait_for_events(const std::uint32_t milliseconds){
       if(SDL_WaitEventTimeout(&event_, milliseconds) > 0) analyze_event();
       poll_events();
     }

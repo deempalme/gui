@@ -5,6 +5,7 @@
 #include "ramrod/gl/error.h"
 #include "ramrod/gl/frame_buffer.h"
 #include "ramrod/gl/shader.h"
+#include "ramrod/gl/pixel_buffer.h"
 #include "ramrod/gl/texture.h"
 #include "ramrod/gl/uniform_buffer.h"
 #include "ramrod/gui/constants.h"
@@ -17,7 +18,7 @@
 
 namespace ramrod {
   namespace gui {
-    gui_manager::gui_manager(gui::window *window) :
+    gui_manager::gui_manager(gui::window *window, const int width, const int height) :
       window_(window),
       fonts_(),
       global_font_size_{16},
@@ -47,10 +48,17 @@ namespace ramrod {
       last_texture_id_{0},
       last_bound_texture_id_{0},
       ids_(),
-      width_{0},
-      height_{0},
-      width_factor_{0.0f},
-      height_factor_{0.0f}
+      width_{width},
+      height_{height},
+      width_factor_{1.0f},
+      height_factor_{1.0f},
+      custom_resolution_{false},
+      resolution_x_{width},
+      resolution_y_{height},
+      pbo_{nullptr},
+      read_pbo_{0},
+      next_pbo_{1},
+      last_pbo_{nullptr}
     {
     }
 
@@ -64,6 +72,7 @@ namespace ramrod {
       if(front_texture_) delete front_texture_;
       if(scene_uniform_) delete scene_uniform_;
       if(unitary_buffer_) delete unitary_buffer_;
+      if(pbo_) std::free(pbo_);
     }
 
     std::size_t gui_manager::add_element(gui::element *new_element){
@@ -111,35 +120,6 @@ namespace ramrod {
       }
     }
 
-    const pixel_id &gui_manager::calculate_ids(int x, int y){
-      int data[4];
-      x *= width_factor_;
-      y *= height_factor_;
-
-      frame_buffer_->bind();
-      glReadBuffer(GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
-      glReadPixels(x, gui::resolution::full_hd_height - 1 - y, 1, 1, GL_RGBA_INTEGER,  GL_INT, data);
-      frame_buffer_->release();
-
-      if(data[1] == 0){
-        ids_.parent = 0;
-        ids_.object_id = 0;
-        ids_.object = nullptr;
-        ids_.object_x = 0;
-        ids_.object_y = 0;
-        return ids_;
-      }else if(static_cast<std::size_t>(data[1]) == ids_.object_id)
-        return ids_;
-
-      ids_.parent = static_cast<std::size_t>(data[0]);
-      ids_.object_id = static_cast<std::size_t>(data[1]);
-//      ids_.object = elements_[ids_.object_id];
-      ids_.object_x = static_cast<std::uint32_t>(data[2]);
-      ids_.object_y = static_cast<std::uint32_t>(data[3]);
-
-      return ids_;
-    }
-
     void gui_manager::bind_shader(const GLuint shader_id){
       if(last_shader_id_ == shader_id) return;
       last_shader_id_ = shader_id;
@@ -153,8 +133,75 @@ namespace ramrod {
       glBindTexture(GL_TEXTURE_2D, last_bound_texture_id_);
     }
 
+    const pixel_id &gui_manager::calculate_ids(int x, int y){
+      int data[4];
+      x *= width_factor_;
+      y *= height_factor_;
+
+      frame_buffer_->bind();
+      glReadBuffer(GL_COLOR_ATTACHMENT0 + gui::framebuffer::back);
+      glReadPixels(x, resolution_y_ - 1 - y, 1, 1, GL_RGBA_INTEGER,  GL_INT, data);
+      frame_buffer_->release();
+
+      if(data[1] == 0){
+        ids_.parent = 0;
+        ids_.object_id = 0;
+        ids_.object = nullptr;
+        ids_.object_x = 0;
+        ids_.object_y = 0;
+        return ids_;
+      }
+
+      ids_.parent = static_cast<std::size_t>(data[0]);
+      ids_.object_id = static_cast<std::size_t>(data[1]);
+      //      ids_.object = elements_[ids_.object_id];
+      ids_.object_x = static_cast<std::uint32_t>(data[2]);
+      ids_.object_y = static_cast<std::uint32_t>(data[3]);
+
+      return ids_;
+    }
+
+    void gui_manager::exclusive_paint(){
+      sprite_shader_->use();
+      sprite_->activate();
+      sprite_->bind();
+
+      for(auto &element : z_index_list_)
+        element.second->paint();
+    }
+
+    void gui_manager::framebuffer_bind(){
+      frame_buffer_->bind();
+      glViewport(0, 0, resolution_x_, resolution_y_);
+      window_->screen_clear();
+    }
+
+    void gui_manager::framebuffer_paint(){
+      frame_shader_->use();
+
+      front_texture_->activate();
+      front_texture_->bind();
+
+      unitary_buffer_->vertex_bind();
+      unitary_buffer_->draw(GL_TRIANGLES, 0, 6);
+      unitary_buffer_->vertex_release();
+    }
+
+    void gui_manager::framebuffer_release(){
+      frame_buffer_->release();
+      restart_viewport();
+    }
+
     std::size_t gui_manager::hovered_element(){
       return ids_.object_id;
+    }
+
+    std::uint32_t gui_manager::hovered_element_x(){
+      return ids_.object_x;
+    }
+
+    std::uint32_t gui_manager::hovered_element_y(){
+      return ids_.object_y;
     }
 
     std::size_t gui_manager::last_element_id(){
@@ -171,6 +218,52 @@ namespace ramrod {
 
     int gui_manager::last_z_index(){
       return last_z_index_;
+    }
+
+    bool gui_manager::map_initialize(){
+      if(pbo_) return false;
+
+      pbo_ = (ramrod::gl::pixel_buffer*)std::malloc(sizeof(ramrod::gl::pixel_buffer) * 2);
+      // Initializing pixel buffer object
+      pbo_[0] = ramrod::gl::pixel_buffer();
+      pbo_[0].generate();
+      pbo_[0].bind();
+      // Full size data has resolution_x x resolution_y x RGBA and RGBA is one byte per channel
+      pbo_[0].allocate_data(nullptr, resolution_x_ * resolution_y_ * gui::byte_sizes::float_4D);
+      pbo_[0].release();
+
+      pbo_[1] = ramrod::gl::pixel_buffer();
+      pbo_[1].generate();
+      pbo_[1].bind();
+      // Full size data has resolution_x x resolution_y x RGBA and RGBA is one byte per channel
+      pbo_[1].allocate_data(nullptr, resolution_x_ * resolution_y_ * gui::byte_sizes::float_4D);
+      pbo_[1].release();
+
+      return true;
+    }
+
+    const char *gui_manager::map(){
+      if(!pbo_) return nullptr;
+
+      if(last_pbo_) unmap();
+
+      // Frames get written after dequeuing the buffer
+      read_pbo_ = (read_pbo_ + 1) % 2;
+      next_pbo_ = (read_pbo_ + 1) % 2;
+
+      // set the target framebuffer to read
+      pbo_[read_pbo_].read_buffer(GL_COLOR_ATTACHMENT0 + gui::framebuffer::front);
+
+      // Triggering the next read after all cameras are painted
+      pbo_[read_pbo_].bind();
+      pbo_[read_pbo_].read_pixels(0, 0, resolution_x_, resolution_y_,
+                                  GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+
+      // map the PBO to process its data by CPU
+      pbo_[next_pbo_].bind();
+      last_pbo_ = static_cast<const char*>(pbo_[next_pbo_].map(GL_READ_ONLY));
+
+      return last_pbo_;
     }
 
     std::size_t gui_manager::modify_tab_index(gui::input *input, const std::size_t new_tap_index){
@@ -197,6 +290,22 @@ namespace ramrod {
         }
       }
       return 0;
+    }
+
+    bool gui_manager::new_sprite(const std::string &sprite_path){
+      gui::image_loader new_image(sprite_path, false);
+
+      if(new_image.data()){
+        sprite_->bind();
+        sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
+                          new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+        sprite_->release();
+        sprite_->activate();
+        sprite_height_ = static_cast<float>(new_image.height());
+        sprite_width_ = static_cast<float>(new_image.width());
+        return true;
+      }
+      return false;
     }
 
     bool gui_manager::remove_element(gui::element *old_element){
@@ -229,20 +338,36 @@ namespace ramrod {
       return false;
     }
 
-    bool gui_manager::new_sprite(const std::string &sprite_path){
-      gui::image_loader new_image(sprite_path, false);
+    void gui_manager::resolution(const int x, const int y){
+      int new_x, new_y;
 
-      if(new_image.data()){
-        sprite_->bind();
-        sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
-                          new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
-        sprite_->release();
-        sprite_->activate();
-        sprite_height_ = static_cast<float>(new_image.height());
-        sprite_width_ = static_cast<float>(new_image.width());
-        return true;
+      if(x <= 0 || y <= 0){
+        new_x = width_;
+        new_y = height_;
+        custom_resolution_ = false;
+      }else{
+        new_x = x;
+        new_y = y;
+        custom_resolution_ = true;
       }
-      return false;
+
+      if(new_x != resolution_x_ || new_y != resolution_y_){
+        resolution_x_ = new_x;
+        resolution_y_ = new_y;
+
+        width_factor_ = resolution_x_ / static_cast<float>(width_);
+        height_factor_ = resolution_y_ / static_cast<float>(height_);
+
+        update_size();
+      }
+    }
+
+    int gui_manager::resolution_x(){
+      return resolution_x_;
+    }
+
+    int gui_manager::resolution_y(){
+      return resolution_y_;
     }
 
     GLuint gui_manager::sprite_id(){
@@ -259,6 +384,19 @@ namespace ramrod {
 
     GLuint gui_manager::sprite_shader(){
       return sprite_shader_->id();
+    }
+
+    bool gui_manager::unmap(){
+      if(!pbo_) return false;
+
+      if(last_pbo_)
+        pbo_[next_pbo_].unmap();
+
+      last_pbo_ = nullptr;
+
+      // back to conventional pixel operation
+      pbo_[next_pbo_].release();
+      return true;
     }
 
     // :::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
@@ -287,19 +425,19 @@ namespace ramrod {
         }
       }
       if(!text_shader_){
-//        text_shader_ = new ramrod::gl::shader(gui::text_shader_vert,
-//                                              gui::text_shader_frag,
-//                                              gui::text_shader_geom);
+        //        text_shader_ = new ramrod::gl::shader(gui::text_shader_vert,
+        //                                              gui::text_shader_frag,
+        //                                              gui::text_shader_geom);
 
-//        if(text_shader_->error()){
-//          rr::error() << "gui_manager text_shader: " << text_shader_->error_log() << rr::endl;
-//        }else{
-//          text_shader_->use();
-//          text_shader_->set_value(text_shader_->uniform_location("u_atlas"),
-//                                  gui::texture_unit::font_atlas);
-//          t_u_color_ = text_shader_->uniform_location("u_color");
-//          t_u_size_ = text_shader_->uniform_location("u_size");
-//        }
+        //        if(text_shader_->error()){
+        //          rr::error() << "gui_manager text_shader: " << text_shader_->error_log() << rr::endl;
+        //        }else{
+        //          text_shader_->use();
+        //          text_shader_->set_value(text_shader_->uniform_location("u_atlas"),
+        //                                  gui::texture_unit::font_atlas);
+        //          t_u_color_ = text_shader_->uniform_location("u_color");
+        //          t_u_size_ = text_shader_->uniform_location("u_size");
+        //        }
       }
       if(!sprite_shader_){
         sprite_shader_ = new ramrod::gl::shader(gui::shader::sprite_shader_vert,
@@ -320,16 +458,15 @@ namespace ramrod {
         back_texture_ = new gl::texture(true, gui::texture_unit::background_ids, false);
         back_texture_->bind();
         back_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-        back_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
-                                nullptr, GL_RGBA_INTEGER, GL_INT, GL_RGBA32I);
+        back_texture_->allocate(resolution_x_, resolution_y_, nullptr,
+                                GL_RGBA_INTEGER, GL_INT, GL_RGBA32I);
         back_texture_->release();
       }
       if(!front_texture_){
         front_texture_ = new gl::texture(true, gui::texture_unit::front_frame, false);
         front_texture_->bind();
         front_texture_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
-        front_texture_->allocate(gui::resolution::full_hd_width, gui::resolution::full_hd_height,
-                                 nullptr);
+        front_texture_->allocate(resolution_x_, resolution_y_, nullptr);
         front_texture_->release();
       }
       if(!frame_buffer_){
@@ -399,13 +536,13 @@ namespace ramrod {
       if(event.scancode == SDL_SCANCODE_F11){
         window_->full_screen(!window_->full_screen());
       }
-//      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
-//                    event.scancode, event.sym, event.mod);
+      //      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
+      //                    event.scancode, event.sym, event.mod);
     }
 
     void gui_manager::key_up_event(const keyboard_event::key &/*event*/){
-//      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
-//                    event.scancode, event.sym, event.mod);
+      //      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
+      //                    event.scancode, event.sym, event.mod);
     }
 
     void gui_manager::mouse_down_event(const gui::mouse_event::button &/*event*/){}
@@ -416,11 +553,13 @@ namespace ramrod {
 
     void gui_manager::mouse_up_event(const gui::mouse_event::button &/*event*/){}
 
+    void gui_manager::resize_event(const window_event::resize &event){
+      gui_manager::resize(event.width, event.height);
+    }
+
     void gui_manager::paint(){
       pre_paint();
-      for(auto &element : z_index_list_){
-        element.second->paint();
-      }
+      exclusive_paint();
       post_paint();
     }
 
@@ -430,48 +569,67 @@ namespace ramrod {
       width_ = width;
       height_ = height;
 
-      const float window_size[] = { static_cast<float>(width), static_cast<float>(height) };
-      const float sprite_size[] = { sprite_width_, sprite_height_ };
+      if(!custom_resolution_){
+        resolution_x_ = width;
+        resolution_y_ = height;
+        update_size();
+      }
 
-      width_factor_ = gui::resolution::full_hd_width / window_size[0];
-      height_factor_ = gui::resolution::full_hd_height / window_size[1];
+      width_factor_ = resolution_x_ / static_cast<float>(width_);
+      height_factor_ = resolution_y_ / static_cast<float>(height_);
+    }
+
+    void gui_manager::restart_viewport(){
+      glViewport(0, 0, resolution_x_, resolution_y_);
+    }
+
+    void gui_manager::pre_paint(){
+      if(!using_elements_) return;
+      framebuffer_bind();
+    }
+
+    void gui_manager::post_paint(){
+      if(!using_elements_) return;
+      framebuffer_release();
+      framebuffer_paint();
+    }
+
+    // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
+
+    void gui_manager::update_size(){
+      // Resizing the back framebuffer texture output
+      back_texture_->bind();
+      back_texture_->allocate(resolution_x_, resolution_y_, nullptr,
+                              GL_RGBA_INTEGER, GL_INT, GL_RGBA32I);
+      back_texture_->release();
+
+      // Resizing the front framebuffer texture output
+      front_texture_->bind();
+      front_texture_->allocate(resolution_x_, resolution_y_, nullptr);
+      front_texture_->release();
+
+      // Updating the shaders window and sprite size
+      const float window_size[] = { static_cast<float>(resolution_x_),
+                                    static_cast<float>(resolution_y_) };
+      const float sprite_size[] = { sprite_width_, sprite_height_ };
 
       scene_uniform_->bind();
       scene_uniform_->allocate_section(window_size, sizeof(window_size));
       scene_uniform_->allocate_section(sprite_size, sizeof(sprite_size), gui::byte_sizes::float_2D);
       scene_uniform_->release();
-    }
 
-    void gui_manager::restart_viewport(){
-      glViewport(0, 0, width_, height_);
-    }
+      // Updating the PBO sizes
+      if(pbo_){
+        pbo_[0].bind();
+        // Full size data has resolution_x x resolution_y x RGBA and RGBA is one byte per channel
+        pbo_[0].allocate_data(nullptr, resolution_x_ * resolution_y_ * gui::byte_sizes::float_4D);
+        pbo_[0].release();
 
-    void gui_manager::pre_paint(){
-      if(!using_elements_) return;
-
-      frame_buffer_->bind();
-      sprite_->bind();
-      sprite_shader_->use();
-
-      glViewport(0, 0, gui::resolution::full_hd_width, gui::resolution::full_hd_height);
-      window_->screen_clear();
-    }
-
-    void gui_manager::post_paint(){
-      if(!using_elements_) return;
-
-      frame_buffer_->release();
-
-      restart_viewport();
-
-      frame_shader_->use();
-
-      front_texture_->activate();
-      front_texture_->bind();
-
-      unitary_buffer_->vertex_bind();
-      unitary_buffer_->draw(GL_TRIANGLES, 0, 6);
-      unitary_buffer_->vertex_release();
+        pbo_[1].bind();
+        // Full size data has resolution_x x resolution_y x RGBA and RGBA is one byte per channel
+        pbo_[1].allocate_data(nullptr, resolution_x_ * resolution_y_ * gui::byte_sizes::float_4D);
+        pbo_[1].release();
+      }
     }
   } // namespace: gui
 } // namespace: ramrod

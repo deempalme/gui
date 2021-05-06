@@ -72,16 +72,16 @@ namespace ramrod {
        * `infinite_loop = true` then, it will maintain the window open until a close
        * event is triggered.
        *
-       * @param infinite_loop If set to `true` it will maintain the window open
-       *                      until a close event is triggered.
        * @param sleep_time Time between frames in milliseconds and only works if
        *                   `infinite_time` is `true`.
+       * @param infinite_loop If set to `true` it will maintain the window open
+       *                      until a close event is triggered.
        *
        * @return This will return the type of error if the window was not created
        *         properly: `EXIT_SUCCESS`, `GLFW_NOT_LOADED`, `WINDOW_NOT_LOADED`,
        *         `GLAD_NOT_LOADED` or `EXISTING_WINDOW`.
        */
-      int execute(const bool infinite_loop = true, int sleep_time = 1000);
+      int execute(const std::uint32_t sleep_time, const bool infinite_loop = true);
       /**
        * @brief Execute window with extra parameters
        *
@@ -91,6 +91,8 @@ namespace ramrod {
        * *zero* and `full_screen` is `false` then, **width** and **height** will change to
        * initial values: 1500 and 800 respectively.
        *
+       * @param sleep_time Time between frames in milliseconds and only works if
+       *                   `infinite_time` is `true`.
        * @param width Window's width in pixels.
        * @param height Window's height in pixels.
        * @param title The UTF-8 encoded window's title.
@@ -99,16 +101,14 @@ namespace ramrod {
        *                  `full_screen = true`.
        * @param infinite_loop If set to `true` it will maintain the window open until
        *                      close event.
-       * @param sleep_time Time between frames in milliseconds and only works if
-       *                   `infinite_time` is `true`.
        *
        * @return This will return the type of error if the window was not created
        *         properly: `EXIT_SUCCESS`, `GLFW_NOT_LOADED`, `WINDOW_NOT_LOADED`,
        *         `GLAD_NOT_LOADED` or `EXISTING_WINDOW`.
        */
-      int execute(int width, int height, const std::string title = "Untitled",
-                  const bool full_screen = false, const bool maximized = false,
-                  const bool infinite_loop = true, int sleep_time = 1000);
+      int execute(const std::uint32_t sleep_time, int width, int height,
+                  const std::string title = "Untitled", const bool full_screen = false,
+                  const bool maximized = false, const bool infinite_loop = true);
       /**
        * @brief Forcing this window to redraw the screen
        */
@@ -229,7 +229,7 @@ namespace ramrod {
        * @brief Sleeping during specified milliseconds
        * @param milliseconds Number of milliseconds to sleep
        */
-      void sleep(const uint32_t milliseconds);
+      void sleep(const std::uint32_t milliseconds);
       /**
        * @brief Getting the window's title
        * @return String containing the window's title
@@ -298,11 +298,15 @@ namespace ramrod {
       // Keyboard's events
       virtual void key_down_event(const gui::keyboard_event::key &event);
       virtual void key_up_event(const gui::keyboard_event::key &event);
+
       // Mouse's events
       virtual void mouse_down_event(const gui::mouse_event::button &event);
       virtual void mouse_move_event(const gui::mouse_event::move &event);
       virtual void mouse_up_event(const gui::mouse_event::button &event);
       virtual void mouse_wheel_event(const gui::mouse_event::wheel &event);
+
+      // Window's events
+      virtual void resize_event(const ramrod::gui::window_event::resize &event);
       /**
        * @brief OpenGL clearing and painting of the screen
        *

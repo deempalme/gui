@@ -21,6 +21,7 @@ namespace ramrod {
     } // namespace: byte_sizes
 
     namespace resolution {
+      constexpr std::uint32_t element_max_value = 10000;
       constexpr unsigned int full_hd_width  = 1920;
       constexpr unsigned int full_hd_height = 1080;
       constexpr unsigned int full_hd = 1920 * 1080;
@@ -39,6 +40,7 @@ namespace ramrod {
       constexpr char text_shader_vert[] = RAMROD_GUI_DIR "/resources/shaders/simple_text.vert";
 
       constexpr char yuyv_frag_shader[] = RAMROD_GUI_DIR "/resources/shaders/yuyv.frag";
+      constexpr char yv12_frag_shader[] = RAMROD_GUI_DIR "/resources/shaders/yv12.frag";
     }
 
     namespace sprite {
