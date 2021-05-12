@@ -25,6 +25,8 @@ namespace ramrod {
                  const int z_index = 0, const std::size_t tab_index = 0);
       virtual ~video_yuyv();
 
+      void invert_y_axis();
+
       void paint();
 
       bool resolution(const float width, const float height);
@@ -45,6 +47,8 @@ namespace ramrod {
       gl::pixel_buffer *pbo_;
       std::size_t read_pbo_;
       gl::texture *yuyv_;
+
+      bool inverted_;
 
       inline static gl::shader *shader_ = nullptr;
       inline static GLuint u_yuyv_size_ = 0;

@@ -1,5 +1,5 @@
-#ifndef RAMROD_VISION_SERVER_GUI_TYPES_H
-#define RAMROD_VISION_SERVER_GUI_TYPES_H
+#ifndef RAMROD_VISION_GUI_TYPES_H
+#define RAMROD_VISION_GUI_TYPES_H
 
 #include <cstdint>
 
@@ -113,4 +113,4 @@ namespace ramrod {
 } // namespace: ramrod
 
 
-#endif // RAMROD_VISION_SERVER_GUI_TYPES_H
+#endif // RAMROD_VISION_GUI_TYPES_H

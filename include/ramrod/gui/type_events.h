@@ -1,4 +1,4 @@
-﻿#ifndef RAMROD_GUI_TYPE_EVENTS_H
+#ifndef RAMROD_GUI_TYPE_EVENTS_H
 #define RAMROD_GUI_TYPE_EVENTS_H
 
 #include <cstdint>

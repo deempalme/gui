@@ -1,5 +1,5 @@
-#ifndef RAMROD_VISION_SERVER_GUI_INPUT_TEXT_H
-#define RAMROD_VISION_SERVER_GUI_INPUT_TEXT_H
+#ifndef RAMROD_VISION_GUI_INPUT_TEXT_H
+#define RAMROD_VISION_GUI_INPUT_TEXT_H
 
 #include <iosfwd>              // for size_t
 #include <string>              // for string, allocator
@@ -28,4 +28,4 @@ namespace ramrod {
   } // namespace: gui
 } // namespace: ramrod
 
-#endif // RAMROD_VISION_SERVER_GUI_INPUT_TEXT_H
+#endif // RAMROD_VISION_GUI_INPUT_TEXT_H

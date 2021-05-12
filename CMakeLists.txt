@@ -17,8 +17,8 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   set(HPP_FILES
     include/ramrod/gui/button.h
     include/ramrod/gui/constants.h
-    include/ramrod/gui/enumerators.h
     include/ramrod/gui/element.h
+    include/ramrod/gui/enumerators.h
     include/ramrod/gui/event_handler.h
     include/ramrod/gui/file_manager.h
     include/ramrod/gui/font_loader.h
@@ -28,11 +28,12 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     include/ramrod/gui/image_stream.h
     include/ramrod/gui/input.h
     include/ramrod/gui/input_text.h
-    include/ramrod/gui/slider.h
-    include/ramrod/gui/types.h
-    include/ramrod/gui/type_events.h
     include/ramrod/gui/texture.h
+    include/ramrod/gui/time_slider.h
+    include/ramrod/gui/type_events.h
+    include/ramrod/gui/types.h
     include/ramrod/gui/video_yuyv.h
+    include/ramrod/gui/video_yv12.h
     include/ramrod/gui/window.h
   )
 
@@ -49,9 +50,10 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     src/ramrod/gui/image_stream.cpp
     src/ramrod/gui/input.cpp
     src/ramrod/gui/input_text.cpp
-    src/ramrod/gui/slider.cpp
     src/ramrod/gui/texture.cpp
+    src/ramrod/gui/time_slider.cpp
     src/ramrod/gui/video_yuyv.cpp
+    src/ramrod/gui/video_yv12.cpp
     src/ramrod/gui/window.cpp
   )
 
@@ -102,10 +104,11 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
   target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+      RAMROD_GUI_DIR="${PROJECT_SOURCE_DIR}"
     PRIVATE
       # TODO: change to binary dir at the end
 #      RAMROD_GUI_DIR="${PROJECT_BINARY_DIR}"
-      RAMROD_GUI_DIR="${PROJECT_SOURCE_DIR}"
       STB_IMAGE_STATIC=1
       STB_IMAGE_IMPLEMENTATION=1
       STBI_NO_HDR=1
