@@ -1,6 +1,6 @@
-#include "ramrod/gui/input.h"
+﻿#include "ramrod/gui/input.h"
 
-#include "SDL_keyboard.h"                          // for SDL_StartTextInput
+#include <SDL2/SDL_keyboard.h>           // for SDL_StartTextInput
 
 #include "ramrod/gui/gui_manager.h"
 #include "ramrod/gui/window.h"

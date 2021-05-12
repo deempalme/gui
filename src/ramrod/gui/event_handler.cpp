@@ -1,17 +1,17 @@
-#include "ramrod/gui/event_handler.h"
+﻿#include "ramrod/gui/event_handler.h"
 
-#include <SDL2/SDL_keyboard.h>                     // for SDL_Keysym
-#include <SDL2/SDL_keycode.h>                      // for SDLK_DOWN, SDLK_LEFT
-#include <SDL2/SDL_mouse.h>                        // for SDL_BUTTON_LEFT
-#include <SDL2/SDL_video.h>                        // for SDL_WINDOWEVENT_CLOSE
-#include "SDL_events.h"                            // for SDL_Event, SDL_Win...
-#include "SDL_rect.h"                              // for SDL_Rect
-#include "SDL_stdinc.h"                            // for SDL_free
-#include "ramrod/console.h"                        // for formatted
-#include "ramrod/console/attention.h"              // for attention, attenti...
-#include "ramrod/console/types.h"                  // for attention
-#include "ramrod/gui/enumerators.h"                // for ctrl, not_none
-#include "ramrod/gui/window.h"                     // for window
+#include <SDL2/SDL_keyboard.h>          // for SDL_Keysym
+#include <SDL2/SDL_keycode.h>           // for SDLK_DOWN, SDLK_LEFT
+#include <SDL2/SDL_mouse.h>             // for SDL_BUTTON_LEFT
+#include <SDL2/SDL_video.h>             // for SDL_WINDOWEVENT_CLOSE
+#include <SDL2/SDL_events.h>            // for SDL_Event, SDL_Win...
+#include <SDL2/SDL_rect.h>              // for SDL_Rect
+#include <SDL2/SDL_stdinc.h>            // for SDL_free
+#include "ramrod/console.h"             // for formatted
+#include "ramrod/console/attention.h"   // for attention, attenti...
+#include "ramrod/console/types.h"       // for attention
+#include "ramrod/gui/enumerators.h"     // for ctrl, not_none
+#include "ramrod/gui/window.h"          // for window
 
 namespace ramrod {
   namespace gui {
