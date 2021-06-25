@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 
-<<<<<<< HEAD
 #include <cstdlib>                       // for exit, EXIT_SUCCESS
 #include <SDL2/SDL.h>                    // for SDL_Init, SDL_Quit
 #include <SDL2/SDL_endian.h>             // for SDL_BIG_ENDIAN
@@ -21,27 +20,6 @@
 #include "ramrod/gui/enumerators.h"      // for GLAD_not_loaded
 #include "ramrod/gui/file_manager.h"     // for file_manager
 #include "ramrod/gui/image_loader.h"     // for image_loader
-=======
-#include <cstdlib>                                  // for exit, EXIT_SUCCESS
-#include "SDL.h"                                    // for SDL_Init, SDL_Quit
-#include "SDL_endian.h"                             // for SDL_BIG_ENDIAN
-#include "SDL_error.h"                              // for SDL_GetError
-#include "SDL_main.h"                               // for SDL_SetMainReady
-#include "SDL_mouse.h"                              // for SDL_GetGlobalMous...
-#include "SDL_rect.h"                               // for SDL_Rect
-#include "SDL_stdinc.h"                             // for SDL_TRUE
-#include "SDL_surface.h"                            // for SDL_FreeSurface
-#include "SDL_timer.h"                              // for SDL_Delay, SDL_Ge...
-#include "glad/glad.h"                              // for glDisable, gladLo...
-#include "ramrod/console.h"                    // for endl
-#include "ramrod/console/endl.h"                    // for endl
-#include "ramrod/console/error.h"                   // for error_stream, error
-#include "ramrod/console/regular.h"                 // for regular, regular_...
-#include "ramrod/gl/texture.h"                      // for texture
-#include "ramrod/gui/enumerators.h"                 // for GLAD_not_loaded
-#include "ramrod/gui/file_manager.h"                // for file_manager
-#include "ramrod/gui/image_loader.h"                // for image_loader
->>>>>>> bf513b10c6504115ce52a5cf7cd28d6ef85f9b44
 
 namespace ramrod {
   namespace gui {
