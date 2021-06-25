@@ -57,6 +57,8 @@ namespace ramrod {
       void framebuffer_paint();
       void framebuffer_release();
 
+      void front_texture_bind();
+
       std::size_t hovered_element();
       std::uint32_t hovered_element_x();
       std::uint32_t hovered_element_y();

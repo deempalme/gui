@@ -246,6 +246,15 @@ namespace ramrod {
       void update_position();
       void update_size();
       /**
+       * @brief Setting the viewport
+       *
+       * @param width  Specifies the width of the viewport
+       * @param height Specifies the height of the viewport
+       * @param x Specifies the coordinate x of the lower left corner
+       * @param y Specifies the coordinate y of the lower left corner
+       */
+      void viewport(const int width, const int height, const int x = 0, const int y = 0);
+      /**
        * @brief Checking window's visility
        *
        * This function returns the window's visibility; `true` if is not hidden or

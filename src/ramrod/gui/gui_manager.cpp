@@ -192,6 +192,11 @@ namespace ramrod {
       restart_viewport();
     }
 
+    void gui_manager::front_texture_bind(){
+      front_texture_->activate();
+      front_texture_->bind();
+    }
+
     std::size_t gui_manager::hovered_element(){
       return ids_.object_id;
     }
@@ -591,7 +596,7 @@ namespace ramrod {
     void gui_manager::post_paint(){
       if(!using_elements_) return;
       framebuffer_release();
-      framebuffer_paint();
+//      framebuffer_paint();
     }
 
     // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::

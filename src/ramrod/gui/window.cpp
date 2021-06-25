@@ -182,7 +182,7 @@ namespace ramrod {
             poll_events();
 
             // Checks if the windows is visible and there are at least a change
-            if(!hidden_ && has_changed_){
+            if(!hidden_/* && has_changed_*/){
               has_changed_ = false;
 
               paint();
@@ -383,6 +383,10 @@ namespace ramrod {
 
       restart_viewport();
       has_changed_ = true;
+    }
+
+    void window::viewport(const int width, const int height, const int x, const int y){
+      glViewport(x, y, width, height);
     }
 
     bool window::visibility(){
