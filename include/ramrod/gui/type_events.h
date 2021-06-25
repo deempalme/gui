@@ -1,5 +1,5 @@
-#ifndef RAMROD_VISION_GUI_TYPE_EVENTS_H
-#define RAMROD_VISION_GUI_TYPE_EVENTS_H
+#ifndef RAMROD_GUI_TYPE_EVENTS_H
+#define RAMROD_GUI_TYPE_EVENTS_H
 
 #include <cstdint>
 
@@ -93,4 +93,4 @@ namespace ramrod {
 } // namespace: ramrod
 
 
-#endif // RAMROD_VISION_GUI_TYPE_EVENTS_H
+#endif // RAMROD_GUI_TYPE_EVENTS_H

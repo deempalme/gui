@@ -1,11 +1,11 @@
-#ifndef RAMROD_GUI_WINDOW_H
+﻿#ifndef RAMROD_GUI_WINDOW_H
 #define RAMROD_GUI_WINDOW_H
 
 #define SDL_MAIN_HANDLED
 #include <stdint.h>                    // for uint32_t
 #include <string>                      // for string, allocator
 
-#include "SDL_video.h"                 // for SDL_GLContext
+#include <SDL2/SDL_video.h>            // for SDL_GLContext
 #include "ramrod/gui/event_handler.h"  // for event_handler
 #include "ramrod/gui/gui_manager.h"    // for gui_manager
 #include "ramrod/gui/types.h"          // for position, size

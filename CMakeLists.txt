@@ -1,4 +1,4 @@
-#cmake version
+﻿#cmake version
 cmake_minimum_required(VERSION 3.5...3.15)
 
 if(NOT TARGET ${RamRodGUI_LIBRARIES})
@@ -7,6 +7,8 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     DESCRIPTION "Ram-Rod's graphical user interface"
     LANGUAGES CXX C
   )
+
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
   # Loading SDL2
   find_package(SDL2 REQUIRED)
