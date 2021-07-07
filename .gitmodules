@@ -1,3 +1,6 @@
 [submodule "lib/ramrod/open_gl"]
 	path = lib/ramrod/open_gl
 	url = https://github.com/deempalme/open_gl.git
+[submodule "lib/ramrod/console_printer"]
+	path = lib/ramrod/console_printer
+	url = https://github.com/deempalme/console_printer.git
