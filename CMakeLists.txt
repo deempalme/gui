@@ -61,6 +61,10 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   # // ------------------------------------ START LIBS ------------------------------------ //
   # // ------------------------------------------------------------------------------------ //
 
+  # +++++++++++++++++++++++++++++++++++++ Console printer ++++++++++++++++++++++++++++++++++++
+  # adding the root directory of torero source tree to your project
+  add_subdirectory(lib/ramrod/console_printer)
+
   # ++++++++++++++++++++++++++++++++++*+++++++ OPEN GL +++++++++++++++++++++++++++++++++++++++
   add_subdirectory(lib/ramrod/open_gl)
 
@@ -79,6 +83,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     ${PROJECT_SOURCE_DIR}/include
     ${SDL2_INCLUDE_DIRS}
     ${RamRodGL_INCLUDE_DIRS}
+    ${RamRodConsole_INCLUDE_DIRS}
     lib/stb
     CACHE INTERNAL ""
   )
@@ -122,6 +127,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
     PUBLIC
       # RamRod utilities
       ${RamRodGL_INCLUDE_DIRS}
+      ${RamRodConsole_INCLUDE_DIRS}
     PRIVATE
       include
       # stbi image loader
@@ -133,6 +139,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   #indicates which libraries to use in the executable
   target_link_libraries(${PROJECT_NAME}
     # RamRod utilities
+    ${RamRodConsole_LIBRARIES}
     ${RamRodGL_LIBRARIES}
     # SDL2 libraries
     ${SDL2_LIBRARIES}
