@@ -596,7 +596,7 @@ namespace ramrod {
     void gui_manager::post_paint(){
       if(!using_elements_) return;
       framebuffer_release();
-//      framebuffer_paint();
+      framebuffer_paint();
     }
 
     // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
