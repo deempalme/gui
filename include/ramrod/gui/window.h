@@ -128,6 +128,15 @@ namespace ramrod {
        * @return Number of milliseconds since start
        */
       std::uint32_t get_time();
+      /**
+       * @brief Obtaining the current window height
+       *
+       * @return Window's height in pixels
+       */
+      int height();
+      /**
+       * @brief Hides the window
+       */
       void hide();
       /**
        * @brief Maximizes or restores the window
@@ -268,6 +277,12 @@ namespace ramrod {
        * @param hide `true` to hide window, `false` to show window
        */
       void visibility(const bool hide);
+      /**
+       * @brief Obtaining the current width of the window
+       *
+       * @return Window's width in pixels
+       */
+      int width();
       /**
        * @brief Getting the path of the window's icon
        * @return Absolute path of the window's icon

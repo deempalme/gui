@@ -256,6 +256,10 @@ namespace ramrod {
       return SDL_GetTicks();
     }
 
+    int window::height(){
+      return window_properties_.h;
+    }
+
     void window::hide(){
       hidden_ = true;
     }
@@ -397,6 +401,10 @@ namespace ramrod {
         SDL_HideWindow(window_);
       else
         SDL_ShowWindow(window_);
+    }
+
+    int window::width(){
+      return window_properties_.w;
     }
 
     const std::string window::window_icon(){
