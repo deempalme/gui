@@ -31,6 +31,34 @@ namespace ramrod:: gui {
 
   // ::::::::::::::::::::::::::::::::::: PROTECTED FUNCTIONS :::::::::::::::::::::::::::::::::::
 
+  void ramrod::gui::event_handler::finger_down_event(const ramrod::gui::finger_event::finger &/*event*/){}
+
+  void ramrod::gui::event_handler::finger_move_event(const ramrod::gui::finger_event::finger &/*event*/){}
+
+  void ramrod::gui::event_handler::finger_up_event(const ramrod::gui::finger_event::finger &/*event*/){}
+
+  void ramrod::gui::event_handler::multigesture_event(const ramrod::gui::multigesture::event &/*event*/){}
+
+  void ramrod::gui::event_handler::click_event(const ramrod::gui::mouse_event::button &/*event*/){}
+
+  void ramrod::gui::event_handler::close_event(const ramrod::gui::window_event::window &/*event*/){}
+
+  void ramrod::gui::event_handler::hide_event(const ramrod::gui::window_event::window &/*event*/){}
+
+  void ramrod::gui::event_handler::maximize_event(const ramrod::gui::window_event::window &/*event*/){}
+
+  void ramrod::gui::event_handler::minimize_event(const ramrod::gui::window_event::window &/*event*/){}
+
+  void ramrod::gui::event_handler::move_event(const ramrod::gui::window_event::move &/*event*/){}
+
+  void ramrod::gui::event_handler::resize_event(const ramrod::gui::window_event::resize &/*event*/){}
+
+  void ramrod::gui::event_handler::restore_event(const ramrod::gui::window_event::resize &/*event*/){}
+
+  void ramrod::gui::event_handler::show_event(const ramrod::gui::window_event::window &/*event*/){}
+
+  void ramrod::gui::event_handler::quit_event(const ramrod::gui::window_event::window &/*event*/){}
+
   void event_handler::drop_text_event(const SDL_DropEvent &event){
     if(event.type == SDL_DROPBEGIN){
     }else if(event.type == SDL_DROPCOMPLETE){
@@ -40,6 +68,20 @@ namespace ramrod:: gui {
       SDL_free(event.file);
     }
   }
+
+  void ramrod::gui::event_handler::text_input_event(const SDL_TextInputEvent &/*event*/){}
+
+  void ramrod::gui::event_handler::text_edit_event(const SDL_TextEditingEvent &/*event*/){}
+
+  void ramrod::gui::event_handler::close(){}
+
+  void ramrod::gui::event_handler::hide(){}
+
+  void ramrod::gui::event_handler::show(){}
+
+  void ramrod::gui::event_handler::update_position(){}
+
+  void ramrod::gui::event_handler::update_size(){}
 
   // :::::::::::::::::::::::::::::::::::: PRIVATE FUNCTIONS ::::::::::::::::::::::::::::::::::::
 
