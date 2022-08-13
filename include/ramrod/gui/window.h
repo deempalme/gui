@@ -7,13 +7,12 @@
 
 #include <SDL2/SDL_video.h>            // for SDL_GLContext
 #include "ramrod/gui/event_handler.h"  // for event_handler
-#include "ramrod/gui/gui_manager.h"    // for gui_manager
 #include "ramrod/gui/types.h"          // for position, size
 
 namespace ramrod {
   namespace gui {
     class window :
-        public gui::event_handler, public gui::gui_manager
+        public gui::event_handler
     {
     public:
       explicit window(const int width = 1024, const int height = 512,
@@ -320,17 +319,17 @@ namespace ramrod {
        */
       virtual void initialize();
       // Keyboard's events
-      virtual void key_down_event(const gui::keyboard_event::key &event);
-      virtual void key_up_event(const gui::keyboard_event::key &event);
+      virtual void key_down_event(const event::key &event);
+      virtual void key_up_event(const event::key &event);
 
       // Mouse's events
-      virtual void mouse_down_event(const gui::mouse_event::button &event);
-      virtual void mouse_move_event(const gui::mouse_event::move &event);
-      virtual void mouse_up_event(const gui::mouse_event::button &event);
-      virtual void mouse_wheel_event(const gui::mouse_event::wheel &event);
+      virtual void mouse_down_event(const event::mouse_button &event);
+      virtual void mouse_move_event(const event::mouse_move &event);
+      virtual void mouse_up_event(const event::mouse_button &event);
+      virtual void mouse_wheel_event(const event::mouse_wheel &event);
 
       // Window's events
-      virtual void resize_event(const ramrod::gui::window_event::resize &event);
+      virtual void resize_event(const ramrod::event::window_resize &event);
       /**
        * @brief OpenGL clearing and painting of the screen
        *

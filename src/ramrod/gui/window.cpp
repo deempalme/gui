@@ -1,7 +1,5 @@
 ﻿#include "ramrod/gui/window.h"
 
-#include <cstdlib>
-
 #include <cstdlib>                       // for exit, EXIT_SUCCESS
 #include <SDL2/SDL.h>                    // for SDL_Init, SDL_Quit
 #include <SDL2/SDL_endian.h>             // for SDL_BIG_ENDIAN
@@ -12,11 +10,11 @@
 #include <SDL2/SDL_stdinc.h>             // for SDL_TRUE
 #include <SDL2/SDL_surface.h>            // for SDL_FreeSurface
 #include <SDL2/SDL_timer.h>              // for SDL_Delay, SDL_Ge...
-#include "glad/glad.h"                   // for glDisable, gladLo...
+#include <SDL2/SDL_vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "ramrod/console/endl.h"         // for endl
 #include "ramrod/console/error.h"        // for error_stream, error
 #include "ramrod/console/regular.h"      // for regular, regular_...
-#include "ramrod/gl/texture.h"           // for texture
 #include "ramrod/gui/enumerators.h"      // for GLAD_not_loaded
 #include "ramrod/gui/file_manager.h"     // for file_manager
 #include "ramrod/gui/image_loader.h"     // for image_loader
@@ -25,7 +23,7 @@ namespace ramrod {
   namespace gui {
     window::window(const int width, const int height, const std::string &title) :
       gui::event_handler(),
-      gui::gui_manager(this, width, height),
+//      gui::gui_manager(this, width, height),
       window_(nullptr),
       window_id_{0},
       context_(),
@@ -54,19 +52,6 @@ namespace ramrod {
         exit(ramrod::gui::error::SDL2_not_loaded);
       }
 
-      SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-      SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-      SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
-      SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, SDL_TRUE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-      SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-
       // SDL window creation
       // --------------------
       const int number_of_monitors{SDL_GetNumVideoDisplays()};
@@ -78,15 +63,15 @@ namespace ramrod {
         if(SDL_GetDisplayBounds(i, &display_properties_) != 0) sdl_error();
 
         if(mouse_x > display_properties_.x
-           && mouse_x < (display_properties_.x + display_properties_.w)
-           && mouse_y > display_properties_.y
-           && mouse_y < (display_properties_.y + display_properties_.h)){
+        && mouse_x < (display_properties_.x + display_properties_.w)
+        && mouse_y > display_properties_.y
+        && mouse_y < (display_properties_.y + display_properties_.h)){
           SDL_GetDesktopDisplayMode(i, &monitor_mode);
           break;
         }
       }
       window_ = SDL_CreateWindow(title_.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                 width, height, SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL
+                                 width, height, SDL_WINDOW_HIDDEN | SDL_WINDOW_VULKAN
                                  | SDL_WINDOW_RESIZABLE);
 
       initial_window_properties_.w = window_properties_.w = width;
@@ -104,30 +89,54 @@ namespace ramrod {
       SDL_SetWindowDisplayMode(window_, &monitor_mode);
       SDL_SetWindowBordered(window_, SDL_TRUE);
 
-      if(!(context_ = SDL_GL_CreateContext(window_))){
-        rr::error("OpenGL context creation failed");
-        exit(ramrod::gui::error::OpenGL_not_loaded);
+      unsigned int extension_count = 0;
+      if(!SDL_Vulkan_GetInstanceExtensions(window_, &extension_count, nullptr))
+        ;
+
+      std::vector<const char*> extension_names(extension_count);
+      if(!SDL_Vulkan_GetInstanceExtensions(window_, &extension_count, extension_names.data()))
+        ;
+
+      for(const char *name : extension_names){
+        rr::regular(name);
       }
 
-      SDL_GL_MakeCurrent(window_, context_);
+      std::uint32_t instance_version;
+      vkEnumerateInstanceVersion(&instance_version);
 
-      // glad: load all OpenGL function pointers
-      // ---------------------------------------
-      if(!gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress))){
-        rr::error("Failed to initialize GLAD");
-        exit(ramrod::gui::error::GLAD_not_loaded);
+      // 3 macros to extract version info
+      const std::uint32_t major = VK_VERSION_MAJOR(instance_version);
+      const std::uint32_t minor = VK_VERSION_MINOR(instance_version);
+      const std::uint32_t patch = VK_VERSION_PATCH(instance_version);
+
+      rr::regular << "Vulkan Version:" << major << "." << minor << "." << patch << rr::endl;
+
+      VkApplicationInfo app_info = {};
+      app_info.pNext = nullptr;
+      app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+      app_info.pApplicationName   = title.c_str();
+      app_info.applicationVersion = VK_MAKE_VERSION(major, minor, patch);
+      app_info.pEngineName   = "No Engine";
+      app_info.engineVersion = app_info.applicationVersion;
+      app_info.apiVersion    = app_info.applicationVersion;
+
+      VkInstanceCreateInfo instance_create_info = {};
+      instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+      instance_create_info.pApplicationInfo = &app_info;
+      instance_create_info.enabledLayerCount = 0;
+      instance_create_info.ppEnabledLayerNames = nullptr;
+      instance_create_info.enabledExtensionCount = extension_names.size();
+      instance_create_info.ppEnabledExtensionNames = extension_names.data();
+
+      VkInstance instance;
+      VkResult result = vkCreateInstance(&instance_create_info, nullptr, &instance);
+      if(result != VK_SUCCESS){
+        rr::error("Error creating vulkan instance");
       }
-
-      SDL_GL_SetSwapInterval(1);
-
-      // detects the maximum anisotropic filtering samples
-      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_filtering_);
-      max_filtering_ = (max_filtering_ > 8.0f)? 8.0f : max_filtering_;
-      ramrod::gl::texture::set_max_filtering(max_filtering_);
 
       SDL_StopTextInput();
 
-      gui::gui_manager::initialize();
+//      gui::gui_manager::initialize();
     }
 
     window::~window(){
@@ -139,7 +148,7 @@ namespace ramrod {
     bool window::background_color(const float red, const float green,
                                   const float blue, const float alpha){
       if(red < 0.0f || green < 0.0f || blue < 0.0f || alpha < 0.0f) return false;
-      glClearColor(red, green, blue, alpha);
+//      glClearColor(red, green, blue, alpha);
       return true;
     }
 
@@ -292,7 +301,7 @@ namespace ramrod {
 
     void window::restart_viewport(){
 //      resize(window_properties_.w, window_properties_.h);
-      glViewport(0, 0, window_properties_.w, window_properties_.h);
+//      glViewport(0, 0, window_properties_.w, window_properties_.h);
     }
 
     void window::sdl_error(){
@@ -300,7 +309,7 @@ namespace ramrod {
     }
 
     void window::screen_clear(){
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     float window::screen_max_filtering(){
@@ -309,9 +318,9 @@ namespace ramrod {
 
     float window::screen_max_filtering(const float new_max_filtering_value){
       float maximum;
-      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximum);
+//      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximum);
       max_filtering_ = (new_max_filtering_value > maximum)? maximum : new_max_filtering_value;
-      ramrod::gl::texture::set_max_filtering(max_filtering_);
+//      ramrod::gl::texture::set_max_filtering(max_filtering_);
       return max_filtering_;
     }
 
@@ -349,7 +358,7 @@ namespace ramrod {
       window_properties_.w = width;
       window_properties_.h = height;
 
-      gui::gui_manager::resize(width, height);
+//      gui::gui_manager::resize(width, height);
 
       has_changed_ = true;
     }
@@ -389,7 +398,7 @@ namespace ramrod {
     }
 
     void window::viewport(const int width, const int height, const int x, const int y){
-      glViewport(x, y, width, height);
+//      glViewport(x, y, width, height);
     }
 
     bool window::visibility(){
@@ -428,55 +437,55 @@ namespace ramrod {
       // configure global opengl state
       // -----------------------------
       // setting the background color
-      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
       // this line allows anti-aliasing to create fine edges
       //    glEnable(GL_MULTISAMPLE);
       // this line allows z-buffer to avoid rear objects to appear in front
-      glDisable(GL_DEPTH_TEST);
+//      glDisable(GL_DEPTH_TEST);
       // these allow alpha transparency in the rendering
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//      glEnable(GL_BLEND);
+//      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       // Avoiding the rendering of all back faces
-      glFrontFace(GL_CCW);
-      glCullFace(GL_BACK);
-      glEnable(GL_CULL_FACE);
+//      glFrontFace(GL_CCW);
+//      glCullFace(GL_BACK);
+//      glEnable(GL_CULL_FACE);
     }
 
-    void window::key_down_event(const gui::keyboard_event::key &event){
-      gui_manager::key_down_event(event);
+    void window::key_down_event(const event::key &event){
+//      gui_manager::key_down_event(event);
     }
 
-    void window::key_up_event(const gui::keyboard_event::key &event){
-      gui_manager::key_up_event(event);
+    void window::key_up_event(const event::key &event){
+//      gui_manager::key_up_event(event);
     }
 
-    void window::mouse_down_event(const gui::mouse_event::button &event){
-      gui_manager::mouse_down_event(event);
+    void window::mouse_down_event(const event::mouse_button &event){
+//      gui_manager::mouse_down_event(event);
     }
 
-    void window::mouse_move_event(const gui::mouse_event::move &event){
-      gui_manager::mouse_move_event(event);
+    void window::mouse_move_event(const event::mouse_move &event){
+//      gui_manager::mouse_move_event(event);
     }
 
-    void window::mouse_up_event(const gui::mouse_event::button &event){
-      gui_manager::mouse_up_event(event);
+    void window::mouse_up_event(const event::mouse_button &event){
+//      gui_manager::mouse_up_event(event);
     }
 
-    void window::mouse_wheel_event(const gui::mouse_event::wheel &/*event*/){
+    void window::mouse_wheel_event(const event::mouse_wheel &/*event*/){
     }
 
-    void window::resize_event(const window_event::resize &event){
-      gui_manager::resize_event(event);
+    void window::resize_event(const event::window_resize &event){
+//      gui_manager::resize_event(event);
     }
 
     void window::paint(){
       //clearing the screen of old information
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      gui::gui_manager::paint();
+//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//      gui::gui_manager::paint();
     }
 
     void window::resize(const int width, const int height){
-      gui::gui_manager::resize(width, height);
+//      gui::gui_manager::resize(width, height);
     }
 
     void window::update(){}
@@ -487,7 +496,7 @@ namespace ramrod {
       gui::image_loader new_icon(icon_path_, false, 4);
 
       if(!new_icon.data()){
-        rr::error("Loading icon failed: " + new_icon.failure_reason());
+        rr::error("Loading icon failed: " + std::string(new_icon.error()));
         return false;
       }
 
@@ -503,7 +512,7 @@ namespace ramrod {
 
       SDL_Surface *icon =
           SDL_CreateRGBSurfaceFrom((void*)new_icon.data(), new_icon.width(), new_icon.height(),
-                                   32, new_icon.number_of_components() * new_icon.width(),
+                                   32, new_icon.components() * new_icon.width(),
                                    red_mask, green_mask, blue_mask, alpha_mask);
 
       if(icon)

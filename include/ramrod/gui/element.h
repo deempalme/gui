@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "ramrod/gl/buffer.h"
-#include "ramrod/gui/type_events.h"
+#include "ramrod/gui/event.h"
 #include "ramrod/gui/types.h"
 
 namespace ramrod {

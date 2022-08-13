@@ -4,7 +4,7 @@
 #include <map>
 
 #include "ramrod/gl/shader.h"
-#include "ramrod/gui/type_events.h"
+#include "ramrod/gui/event.h"
 #include "ramrod/gui/types.h"
 
 namespace ramrod {
@@ -115,16 +115,16 @@ namespace ramrod {
       virtual void initialize();
 
       // Keyboard's events
-      virtual void key_down_event(const gui::keyboard_event::key &event);
-      virtual void key_up_event(const gui::keyboard_event::key &event);
+      virtual void key_down_event(const event::key &event);
+      virtual void key_up_event(const event::key &event);
 
       // Mouse's events
-      virtual void mouse_down_event(const gui::mouse_event::button &event);
-      virtual void mouse_move_event(const gui::mouse_event::move &event);
-      virtual void mouse_up_event(const gui::mouse_event::button &event);
+      virtual void mouse_down_event(const event::mouse_button &event);
+      virtual void mouse_move_event(const event::mouse_move &event);
+      virtual void mouse_up_event(const event::mouse_button &event);
 
       // Window's events
-      virtual void resize_event(const ramrod::gui::window_event::resize &event);
+      virtual void resize_event(const ramrod::event::window_resize &event);
       /**
        * @brief Painting the scren
        */

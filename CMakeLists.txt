@@ -15,45 +15,45 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
 
   #header files
   set(HPP_FILES
-    include/ramrod/gui/button.h
+#    include/ramrod/gui/button.h
     include/ramrod/gui/constants.h
-    include/ramrod/gui/element.h
+#    include/ramrod/gui/element.h
     include/ramrod/gui/enumerators.h
+    include/ramrod/gui/event.h
     include/ramrod/gui/event_handler.h
     include/ramrod/gui/file_manager.h
-    include/ramrod/gui/font_loader.h
-    include/ramrod/gui/gui_manager.h
-    include/ramrod/gui/image.h
+#    include/ramrod/gui/font_loader.h
+#    include/ramrod/gui/gui_manager.h
+#    include/ramrod/gui/image.h
     include/ramrod/gui/image_loader.h
-    include/ramrod/gui/image_stream.h
-    include/ramrod/gui/input.h
-    include/ramrod/gui/input_text.h
-    include/ramrod/gui/texture.h
-    include/ramrod/gui/time_slider.h
-    include/ramrod/gui/type_events.h
+#    include/ramrod/gui/image_stream.h
+#    include/ramrod/gui/input.h
+#    include/ramrod/gui/input_text.h
+#    include/ramrod/gui/texture.h
+#    include/ramrod/gui/time_slider.h
     include/ramrod/gui/types.h
-    include/ramrod/gui/video_yuyv.h
-    include/ramrod/gui/video_yv12.h
+#    include/ramrod/gui/video_yuyv.h
+#    include/ramrod/gui/video_yv12.h
     include/ramrod/gui/window.h
   )
 
   #source files
   set(CPP_FILES
-    src/ramrod/gui/button.cpp
-    src/ramrod/gui/element.cpp
+#    src/ramrod/gui/button.cpp
+#    src/ramrod/gui/element.cpp
     src/ramrod/gui/event_handler.cpp
     src/ramrod/gui/file_manager.cpp
-    src/ramrod/gui/font_loader.cpp
-    src/ramrod/gui/gui_manager.cpp
-    src/ramrod/gui/image.cpp
+#    src/ramrod/gui/font_loader.cpp
+#    src/ramrod/gui/gui_manager.cpp
+#    src/ramrod/gui/image.cpp
     src/ramrod/gui/image_loader.cpp
-    src/ramrod/gui/image_stream.cpp
-    src/ramrod/gui/input.cpp
-    src/ramrod/gui/input_text.cpp
-    src/ramrod/gui/texture.cpp
-    src/ramrod/gui/time_slider.cpp
-    src/ramrod/gui/video_yuyv.cpp
-    src/ramrod/gui/video_yv12.cpp
+#    src/ramrod/gui/image_stream.cpp
+#    src/ramrod/gui/input.cpp
+#    src/ramrod/gui/input_text.cpp
+#    src/ramrod/gui/texture.cpp
+#    src/ramrod/gui/time_slider.cpp
+#    src/ramrod/gui/video_yuyv.cpp
+#    src/ramrod/gui/video_yv12.cpp
     src/ramrod/gui/window.cpp
   )
 
@@ -66,7 +66,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   add_subdirectory(lib/ramrod/console_printer)
 
   # ++++++++++++++++++++++++++++++++++*+++++++ OPEN GL +++++++++++++++++++++++++++++++++++++++
-  add_subdirectory(lib/ramrod/open_gl)
+  add_subdirectory(lib/ramrod/vulkan)
 
   # ++++++++++++++++++++++++++++++++++++++++ STB_IMAGE +++++++++++++++++++++++++++++++++++++++
   # adding the root directory of the stb library source tree to your project
@@ -82,7 +82,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   set(${PROJECT_NAME}_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include
     ${SDL2_INCLUDE_DIRS}
-    ${RamRodGL_INCLUDE_DIRS}
+    ${RamRodVulkan_INCLUDE_DIRS}
     ${RamRodConsole_INCLUDE_DIRS}
     lib/stb
     CACHE INTERNAL ""
@@ -126,7 +126,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   target_include_directories(${PROJECT_NAME}
     PUBLIC
       # RamRod utilities
-      ${RamRodGL_INCLUDE_DIRS}
+      ${RamRodVulkan_INCLUDE_DIRS}
       ${RamRodConsole_INCLUDE_DIRS}
     PRIVATE
       include
@@ -140,7 +140,7 @@ if(NOT TARGET ${RamRodGUI_LIBRARIES})
   target_link_libraries(${PROJECT_NAME}
     # RamRod utilities
     ${RamRodConsole_LIBRARIES}
-    ${RamRodGL_LIBRARIES}
+    ${RamRodVulkan_LIBRARIES}
     # SDL2 libraries
     ${SDL2_LIBRARIES}
   )

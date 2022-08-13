@@ -537,7 +537,7 @@ namespace ramrod {
       }
     }
 
-    void gui_manager::key_down_event(const keyboard_event::key &event){
+    void gui_manager::key_down_event(const event::key &event){
       if(event.scancode == SDL_SCANCODE_F11){
         window_->full_screen(!window_->full_screen());
       }
@@ -545,20 +545,20 @@ namespace ramrod {
       //                    event.scancode, event.sym, event.mod);
     }
 
-    void gui_manager::key_up_event(const keyboard_event::key &/*event*/){
+    void gui_manager::key_up_event(const event::key &/*event*/){
       //      rr::formatted("scancode: %d, keycode: %d, mod: %d\n", rr::message::attention,
       //                    event.scancode, event.sym, event.mod);
     }
 
-    void gui_manager::mouse_down_event(const gui::mouse_event::button &/*event*/){}
+    void gui_manager::mouse_down_event(const event::mouse_button &/*event*/){}
 
-    void gui_manager::mouse_move_event(const gui::mouse_event::move &event){
+    void gui_manager::mouse_move_event(const event::mouse_move &event){
       calculate_ids(event.x, event.y);
     }
 
-    void gui_manager::mouse_up_event(const gui::mouse_event::button &/*event*/){}
+    void gui_manager::mouse_up_event(const event::mouse_button &/*event*/){}
 
-    void gui_manager::resize_event(const window_event::resize &event){
+    void gui_manager::resize_event(const event::window_resize &event){
       gui_manager::resize(event.width, event.height);
     }
 
