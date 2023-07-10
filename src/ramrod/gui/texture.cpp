@@ -25,12 +25,11 @@ namespace ramrod {
       texture_path_ = image_path;
       gui::image_loader image(image_path);
       if(image.loaded()){
-        allocate(image.width(), image.height(), image.data(), image.format(),
-                 GL_UNSIGNED_BYTE, image.internal_format());
+        allocate(image.width(), image.height(), image.data(), image.channels_in_file());
 
         width_ = image.width();
         height_ = image.height();
-        number_of_components_ = image.number_of_components();
+        number_of_components_ = image.channels_in_file();
 
         return true;
       }

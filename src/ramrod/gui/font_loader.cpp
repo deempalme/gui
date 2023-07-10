@@ -110,7 +110,7 @@ namespace ramrod {
       texture_.generate();
       texture_.activate();
       texture_.bind();
-      texture_.allocate(image.width(), image.height(), image.data(), image.format());
+      texture_.allocate(image.width(), image.height(), image.data(), image.channels_in_file());
       texture_.release();
 
       is_loaded_ = true;

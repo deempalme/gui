@@ -303,7 +303,7 @@ namespace ramrod {
       if(new_image.data()){
         sprite_->bind();
         sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
-                          new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+                          new_image.channels_in_file());
         sprite_->release();
         sprite_->activate();
         sprite_height_ = static_cast<float>(new_image.height());
@@ -422,7 +422,7 @@ namespace ramrod {
           sprite_->bind();
           sprite_->parameter(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
           sprite_->allocate(new_image.width(), new_image.height(), new_image.data(),
-                            new_image.format(), GL_UNSIGNED_BYTE, new_image.internal_format());
+                            new_image.channels_in_file());
           sprite_->release();
           sprite_->activate();
           sprite_height_ = static_cast<float>(new_image.height());

@@ -127,7 +127,7 @@ namespace ramrod {
        * @brief Gets the time in milliseconds since the execution's starting
        * @return Number of milliseconds since start
        */
-      std::uint32_t get_time();
+      std::uint64_t get_time();
       /**
        * @brief Obtaining the current window height
        *

@@ -252,8 +252,8 @@ namespace ramrod {
       }
     }
 
-    std::uint32_t window::get_time(){
-      return SDL_GetTicks();
+    std::uint64_t window::get_time(){
+      return SDL_GetTicks64();
     }
 
     int window::height(){
@@ -487,7 +487,7 @@ namespace ramrod {
       gui::image_loader new_icon(icon_path_, false, 4);
 
       if(!new_icon.data()){
-        rr::error("Loading icon failed: " + new_icon.failure_reason());
+        rr::error("Loading icon failed: " + std::string(new_icon.failure_reason()));
         return false;
       }
 
@@ -503,7 +503,7 @@ namespace ramrod {
 
       SDL_Surface *icon =
           SDL_CreateRGBSurfaceFrom((void*)new_icon.data(), new_icon.width(), new_icon.height(),
-                                   32, new_icon.number_of_components() * new_icon.width(),
+                                   32, new_icon.channels_in_file() * new_icon.width(),
                                    red_mask, green_mask, blue_mask, alpha_mask);
 
       if(icon)
